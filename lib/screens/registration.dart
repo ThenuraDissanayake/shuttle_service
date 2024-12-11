@@ -46,7 +46,9 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
         final userData = {
           'name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
-          'role': _selectedRole,
+          'role': _selectedRole == 'Driver'
+              ? 'Owner'
+              : _selectedRole, // Store as 'Owner' in Firestore if 'Driver' is selected
           'createdAt': FieldValue.serverTimestamp(),
         };
 
@@ -68,7 +70,8 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
             context,
             MaterialPageRoute(builder: (_) => const DashboardScreen()),
           );
-        } else if (_selectedRole == 'Owner') {
+        } else if (_selectedRole == 'Driver') {
+          // Here, 'Driver' will map to 'Owner'
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const OwnerDashboardPage()),
@@ -127,7 +130,7 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
                 // Role Dropdown
                 DropdownButtonFormField<String>(
                   value: _selectedRole,
-                  items: ['Passenger', 'Owner']
+                  items: ['Passenger', 'Driver'] // Show Driver instead of Owner
                       .map((role) => DropdownMenuItem(
                             value: role,
                             child: Text(role),
