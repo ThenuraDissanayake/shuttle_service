@@ -1,17 +1,66 @@
 import 'package:flutter/material.dart';
-import 'reservations_overview_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'shuttleManagement.dart';
+import 'reservations_overview_page.dart';
 import 'booking_requests_management.dart';
 
-class OwnerDashboardPage extends StatelessWidget {
+class OwnerDashboardPage extends StatefulWidget {
   const OwnerDashboardPage({super.key});
+
+  @override
+  _OwnerDashboardPageState createState() => _OwnerDashboardPageState();
+}
+
+class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
+  String _userName = "User"; // Default value if no name is found
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  // Fetch the user's name from Firestore
+  Future<void> _fetchUserName() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Attempt to get the user data from both 'passengers' and 'owners' collections
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('passengers')
+            .doc(user.uid)
+            .get();
+
+        // If no user data found in 'passengers', try 'owners'
+        if (!userDoc.exists) {
+          userDoc = await FirebaseFirestore.instance
+              .collection('owners')
+              .doc(user.uid)
+              .get();
+        }
+
+        if (userDoc.exists) {
+          // Cast userDoc.data() as Map<String, dynamic> and retrieve the name
+          final userData = userDoc.data() as Map<String, dynamic>;
+          setState(() {
+            _userName = userData['name'] ?? 'User';
+          });
+        } else {
+          print("No user data found in Firestore.");
+        }
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green,
-        title: const Text('Shuttle Owner Dashboard'),
+        title: Text('Hi, $_userName'),
         actions: [
           IconButton(
             icon: const Icon(Icons.account_circle),
@@ -181,11 +230,4 @@ class OwnerDashboardPage extends StatelessWidget {
       ),
     );
   }
-}
-
-void main() {
-  runApp(const MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: OwnerDashboardPage(),
-  ));
 }
