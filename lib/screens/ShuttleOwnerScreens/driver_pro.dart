@@ -21,6 +21,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   bool _isEditing = false;
   bool _isSubmitted = false;
   Map<String, dynamic>? _driverData;
+  String _driverName = "Unknown"; // Default name
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -35,13 +36,29 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   Future<void> _fetchDriverData() async {
     final user = _auth.currentUser;
     if (user != null) {
+      // Fetch name from the 'owners' collection (since the driver is linked to the owner)
+      DocumentSnapshot ownerDoc =
+          await _firestore.collection('owners').doc(user.uid).get();
+      if (ownerDoc.exists) {
+        final userData = ownerDoc.data()
+            as Map<String, dynamic>; // Explicitly cast to Map<String, dynamic>
+        setState(() {
+          _driverName = userData['name'] ??
+              'Unknown'; // Get the owner's name from the 'owners' collection
+          _shuttleNameController.text =
+              _driverName; // Set the driver's name as the shuttle name in the controller
+        });
+      }
+
+      // Fetch driver details from the 'drivers' collection (if available)
       final driverDoc =
           await _firestore.collection('drivers').doc(user.uid).get();
       if (driverDoc.exists) {
         setState(() {
           _driverData = driverDoc.data() as Map<String, dynamic>;
-          _shuttleNameController.text =
-              _driverData?['shuttle']['shuttle_name'] ?? '';
+          _shuttleNameController.text = _driverData?['shuttle']
+                  ['shuttle_name'] ??
+              _driverName; // Use driver name if shuttle name is not available
           _licensePlateController.text =
               _driverData?['shuttle']['license_plate'] ?? '';
           _shuttleTypeController.text =
@@ -63,7 +80,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
         final user = _auth.currentUser;
         if (user != null) {
           final driverData = {
-            'driver_name': user.displayName ?? "Unknown",
+            'driver_name': _driverName, // Add the fetched name here
             'phone': _phoneController.text.trim(),
             'shuttle': {
               'shuttle_name': _shuttleNameController.text.trim(),
@@ -137,7 +154,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Driver Details'),
+        title: Text('Driver Details for $_driverName'), // Show the name here
         backgroundColor: Colors.green,
       ),
       body: Padding(
@@ -147,6 +164,10 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Text(
+                      'Driver Name: $_driverName', // Show the name here
+                      style: const TextStyle(fontSize: 22),
+                    ),
                     Text(
                       'Shuttle Name: ${_driverData?['shuttle']['shuttle_name'] ?? 'N/A'}',
                       style: const TextStyle(fontSize: 22),
