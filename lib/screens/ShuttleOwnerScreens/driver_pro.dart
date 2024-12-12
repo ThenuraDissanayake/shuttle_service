@@ -22,6 +22,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   bool _isSubmitted = false;
   Map<String, dynamic>? _driverData;
   String _driverName = "Unknown"; // Default name
+  String _shuttleNo = ""; // New variable to store shuttle number
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -36,17 +37,16 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   Future<void> _fetchDriverData() async {
     final user = _auth.currentUser;
     if (user != null) {
-      // Fetch name from the 'owners' collection (since the driver is linked to the owner)
+      // Fetch name and shuttle number from the 'owners' collection
       DocumentSnapshot ownerDoc =
           await _firestore.collection('owners').doc(user.uid).get();
       if (ownerDoc.exists) {
         final userData = ownerDoc.data()
             as Map<String, dynamic>; // Explicitly cast to Map<String, dynamic>
         setState(() {
-          _driverName = userData['name'] ??
-              'Unknown'; // Get the owner's name from the 'owners' collection
-          _shuttleNameController.text =
-              _driverName; // Set the driver's name as the shuttle name in the controller
+          _driverName = userData['name'] ?? 'Unknown';
+          _shuttleNo = userData['Shuttle_No'] ?? ''; // Fetch shuttle number
+          _shuttleNameController.text = _driverName;
         });
       }
 
@@ -56,9 +56,8 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
       if (driverDoc.exists) {
         setState(() {
           _driverData = driverDoc.data() as Map<String, dynamic>;
-          _shuttleNameController.text = _driverData?['shuttle']
-                  ['shuttle_name'] ??
-              _driverName; // Use driver name if shuttle name is not available
+          _shuttleNameController.text =
+              _driverData?['shuttle']['shuttle_name'] ?? _driverName;
           _licensePlateController.text =
               _driverData?['shuttle']['license_plate'] ?? '';
           _shuttleTypeController.text =
@@ -80,7 +79,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
         final user = _auth.currentUser;
         if (user != null) {
           final driverData = {
-            'driver_name': _driverName, // Add the fetched name here
+            'driver_name': _driverName,
             'phone': _phoneController.text.trim(),
             'shuttle': {
               'shuttle_name': _shuttleNameController.text.trim(),
@@ -154,7 +153,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Driver Details for $_driverName'), // Show the name here
+        title: Text('$_shuttleNo '), // Updated to show shuttle number
         backgroundColor: Colors.green,
       ),
       body: Padding(
@@ -165,7 +164,11 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Driver Name: $_driverName', // Show the name here
+                      'Driver Name: $_driverName',
+                      style: const TextStyle(fontSize: 22),
+                    ),
+                    Text(
+                      'Shuttle Number: $_shuttleNo',
                       style: const TextStyle(fontSize: 22),
                     ),
                     Text(
@@ -283,5 +286,17 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
               ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // Clean up controllers
+    _shuttleNameController.dispose();
+    _licensePlateController.dispose();
+    _shuttleTypeController.dispose();
+    _capacityController.dispose();
+    _routeController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 }
