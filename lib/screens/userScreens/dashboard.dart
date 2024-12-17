@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'seatreservation.dart';
 import 'ShuttleTracking.dart';
 import 'notification.dart';
@@ -6,25 +8,63 @@ import 'feedback.dart';
 import 'myBooking.dart';
 import 'userProfile.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  String _userName = "User"; // Default name if no data is found
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  // Fetch the user's name from Firestore
+  Future<void> _fetchUserName() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // Fetch from 'passengers' collection
+        final userDoc = await FirebaseFirestore.instance
+            .collection('passengers')
+            .doc(user.uid)
+            .get();
+
+        if (userDoc.exists) {
+          // Cast to a Map to access fields
+          final userData = userDoc.data() as Map<String, dynamic>;
+          setState(() {
+            _userName = userData['name'] ?? 'User';
+          });
+        } else {
+          print("No user data found in 'passengers' collection.");
+        }
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green,
-        title: const Text('Hi User, Welcome to UniShuttle'),
+        title: Text('Hi $_userName, Welcome'),
         actions: [
           IconButton(
             icon: const Icon(Icons.account_circle),
             onPressed: () {
-              // Navigate to the User Profile screen
+              // Navigate to User Profile screen
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      const UserProfilePage(), // Navigating to UserProfilePage
+                  builder: (context) => const UserProfilePage(),
                 ),
               );
             },

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'userScreens/dashboard.dart'; // Passenger dashboard
 import 'ShuttleOwnerScreens/shuttledashboard.dart'; // Shuttle owner dashboard
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,6 +18,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> _loginWithEmailAndPassword() async {
+    if (_emailController.text.trim().isEmpty ||
+        _passwordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in all fields.')),
+      );
+      return;
+    }
+
     try {
       // Authenticate user
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -24,37 +33,42 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text.trim(),
       );
 
-      // Navigate to the appropriate dashboard based on user role
       final User? user = userCredential.user;
       if (user != null) {
-        // Check Firestore for user role
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
+        // Check user role in Firestore
+        final passengersDoc = await FirebaseFirestore.instance
+            .collection('passengers')
             .doc(user.uid)
             .get();
 
-        if (userDoc.exists) {
-          final role = userDoc.data()?['role'];
-          if (role == 'Passenger') {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const DashboardScreen()),
-            );
-          } else if (role == 'Shuttle Owner') {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const OwnerDashboardPage()),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Unknown role.')),
-            );
-          }
+        if (passengersDoc.exists) {
+          // Navigate to Passenger Dashboard
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          );
+          return;
         }
+
+        final ownersDoc = await FirebaseFirestore.instance
+            .collection('owners')
+            .doc(user.uid)
+            .get();
+
+        if (ownersDoc.exists) {
+          // Navigate to Shuttle Owner Dashboard
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const OwnerDashboardPage()),
+          );
+          return;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User role not found.')),
+        );
       }
     } catch (e) {
-      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
@@ -64,13 +78,21 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(''),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Navigate back to the previous screen
+          },
+        ),
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Bus icon and UniShuttle text
               const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -90,7 +112,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 30),
-              // Email field
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -101,7 +122,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              // Password field
               TextField(
                 controller: _passwordController,
                 obscureText: true,
@@ -113,7 +133,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              // Login button
               ElevatedButton(
                 onPressed: _loginWithEmailAndPassword,
                 style: ElevatedButton.styleFrom(

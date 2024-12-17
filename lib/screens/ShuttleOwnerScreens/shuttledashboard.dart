@@ -1,22 +1,142 @@
 import 'package:flutter/material.dart';
-import 'reservations_overview_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'shuttleManagement.dart';
+import 'reservations_overview_page.dart';
 import 'booking_requests_management.dart';
+import 'driver_pro.dart';
 
-class OwnerDashboardPage extends StatelessWidget {
+class OwnerDashboardPage extends StatefulWidget {
   const OwnerDashboardPage({super.key});
 
   @override
+  _OwnerDashboardPageState createState() => _OwnerDashboardPageState();
+}
+
+class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
+  String _userName = "User"; // Default value if no name is found
+  bool _isDriverDetailsComplete = true; // Flag to check if details are complete
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+    _checkDriverDetails(); // Check if driver details are submitted
+  }
+
+  // Fetch the user's name from Firestore
+  Future<void> _fetchUserName() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('owners')
+            .doc(user.uid)
+            .get();
+
+        if (userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>;
+          setState(() {
+            _userName = userData['name'] ?? 'User';
+          });
+        }
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    }
+  }
+
+  // Check if the driver details are submitted
+  Future<void> _checkDriverDetails() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot driverDoc = await FirebaseFirestore.instance
+          .collection('drivers')
+          .doc(user.uid)
+          .get();
+
+      if (driverDoc.exists) {
+        final driverData = driverDoc.data() as Map<String, dynamic>;
+
+        // Check if the required fields are filled
+        if (driverData['shuttle'] == null ||
+            driverData['shuttle']['license_plate'] == null ||
+            driverData['shuttle']['capacity'] == null ||
+            driverData['shuttle']['route'] == null ||
+            driverData['phone'] == null) {
+          setState(() {
+            _isDriverDetailsComplete = false;
+          });
+        } else {
+          setState(() {
+            _isDriverDetailsComplete = true;
+          });
+        }
+      } else {
+        setState(() {
+          _isDriverDetailsComplete = false;
+        });
+      }
+    }
+  }
+
+  // Show a dialog if driver details are not complete
+  void _showIncompleteDriverDetailsAlert() {
+    if (!_isDriverDetailsComplete) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Driver Details Required'),
+            content: const Text(
+                'It looks like you haven\'t submitted your driver details. Please fill in your information.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const DriverDetailsPage()),
+                  );
+                },
+                child: const Text('Go to Driver Details'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Cancel'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Show the alert only if driver details are incomplete
+    if (!_isDriverDetailsComplete) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showIncompleteDriverDetailsAlert();
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green,
-        title: const Text('Shuttle Owner Dashboard'),
+        title: Text('Hi, $_userName'),
         actions: [
           IconButton(
             icon: const Icon(Icons.account_circle),
             onPressed: () {
               // Navigate to profile screen or any other screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const DriverDetailsPage()),
+              );
             },
           ),
         ],
@@ -42,16 +162,6 @@ class OwnerDashboardPage extends StatelessWidget {
                       'Shuttle 1', '10:00 AM', '20 seats reserved'),
                   _buildReservationCard(
                       'Shuttle 2', '11:00 AM', 'No seats left'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text('Feedback from Users', style: TextStyle(fontSize: 24)),
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildFeedbackCard('Great service!', 'User 1'),
-                  _buildFeedbackCard('On-time and comfortable.', 'User 2'),
                 ],
               ),
             ),
@@ -163,29 +273,4 @@ class OwnerDashboardPage extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildFeedbackCard(String feedback, String user) {
-    return Card(
-      elevation: 5,
-      margin: const EdgeInsets.all(8),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Text(feedback, style: const TextStyle(fontSize: 16)),
-            Text('- $user',
-                style:
-                    const TextStyle(fontSize: 14, fontStyle: FontStyle.italic)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-void main() {
-  runApp(const MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: OwnerDashboardPage(),
-  ));
 }
