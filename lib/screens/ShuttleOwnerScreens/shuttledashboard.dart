@@ -15,7 +15,9 @@ class OwnerDashboardPage extends StatefulWidget {
 
 class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
   String _userName = "User"; // Default value if no name is found
-  bool _isDriverDetailsComplete = true; // Flag to check if details are complete
+  bool _isDriverDetailsComplete = true;
+
+  get pendingRequests => null; // Flag to check if details are complete
 
   @override
   void initState() {
@@ -150,18 +152,31 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
             Row(
               children: [
                 _buildStatusCard('Shuttle 1', 'Available'),
-                _buildStatusCard('Shuttle 2', 'Full'),
               ],
             ),
             const SizedBox(height: 20),
-            const Text('Latest Reservations', style: TextStyle(fontSize: 24)),
+            const Text('Morning Journey', style: TextStyle(fontSize: 24)),
             Expanded(
               child: ListView(
                 children: [
                   _buildReservationCard(
-                      'Shuttle 1', '10:00 AM', '20 seats reserved'),
+                      'Shuttle day 1', '', '20 seats reserved'),
+                  _buildReservationCard('Shuttle day 2', '', 'No seats left'),
                   _buildReservationCard(
-                      'Shuttle 2', '11:00 AM', 'No seats left'),
+                      'Shuttle day3', '', '15 seats reserved'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text('evening Journey', style: TextStyle(fontSize: 24)),
+            Expanded(
+              child: ListView(
+                children: [
+                  _buildReservationCard(
+                      'Shuttle day 1', '', '20 seats reserved'),
+                  _buildReservationCard('Shuttle day 2', '', 'No seats left'),
+                  _buildReservationCard(
+                      'Shuttle day3', '', '15 seats reserved'),
                 ],
               ),
             ),
@@ -266,7 +281,8 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
             Text(shuttleName,
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text('Time: $time', style: const TextStyle(fontSize: 16)),
+            Text('Pending Requests: $pendingRequests',
+                style: const TextStyle(fontSize: 16)),
             Text(seats, style: const TextStyle(fontSize: 16)),
           ],
         ),

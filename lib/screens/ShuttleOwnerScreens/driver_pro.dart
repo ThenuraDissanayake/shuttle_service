@@ -16,11 +16,17 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   final TextEditingController _shuttleTypeController = TextEditingController();
   final TextEditingController _capacityController = TextEditingController();
   final TextEditingController _routeController = TextEditingController();
+  final TextEditingController _mainStopController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
   bool _isEditing = false;
   bool _isSubmitted = false;
   Map<String, dynamic>? _driverData;
+  String _driverName = "Unknown";
+  String _shuttleNo = "";
+
+  // List to store multiple main stops
+  List<String> _mainStops = [];
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -31,24 +37,42 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
     _fetchDriverData();
   }
 
-  // Fetch driver details from Firestore
   Future<void> _fetchDriverData() async {
     final user = _auth.currentUser;
     if (user != null) {
+      DocumentSnapshot ownerDoc =
+          await _firestore.collection('owners').doc(user.uid).get();
+      if (ownerDoc.exists) {
+        final userData = ownerDoc.data() as Map<String, dynamic>;
+        setState(() {
+          _driverName = userData['name'] ?? 'Unknown';
+          _shuttleNo = userData['Shuttle_No'] ?? '';
+          _shuttleNameController.text = _driverName;
+        });
+      }
+
       final driverDoc =
           await _firestore.collection('drivers').doc(user.uid).get();
       if (driverDoc.exists) {
         setState(() {
           _driverData = driverDoc.data() as Map<String, dynamic>;
           _shuttleNameController.text =
-              _driverData?['shuttle']['shuttle_name'] ?? '';
+              _driverData?['shuttle']['shuttle_name'] ?? _driverName;
           _licensePlateController.text =
               _driverData?['shuttle']['license_plate'] ?? '';
           _shuttleTypeController.text =
               _driverData?['shuttle']['shuttle_type'] ?? '';
           _capacityController.text =
               _driverData?['shuttle']['capacity']?.toString() ?? '';
+
+          // Fetch route and main stops
           _routeController.text = _driverData?['shuttle']['route'] ?? '';
+
+          dynamic mainStopsData = _driverData?['shuttle']['main_stops'];
+          if (mainStopsData is List) {
+            _mainStops = List<String>.from(mainStopsData);
+          }
+
           _phoneController.text = _driverData?['phone'] ?? '';
           _isSubmitted = true;
         });
@@ -56,21 +80,39 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
     }
   }
 
-  // Save driver details to Firestore
+  // Method to add a new main stop
+  void _addMainStop() {
+    String newMainStop = _mainStopController.text.trim();
+    if (newMainStop.isNotEmpty && !_mainStops.contains(newMainStop)) {
+      setState(() {
+        _mainStops.add(newMainStop);
+        _mainStopController.clear(); // Clear the input after adding
+      });
+    }
+  }
+
+  // Method to remove a main stop
+  void _removeMainStop(String mainStop) {
+    setState(() {
+      _mainStops.remove(mainStop);
+    });
+  }
+
   Future<void> saveDriverDetails() async {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && _mainStops.isNotEmpty) {
       try {
         final user = _auth.currentUser;
         if (user != null) {
           final driverData = {
-            'driver_name': user.displayName ?? "Unknown",
+            'driver_name': _driverName,
             'phone': _phoneController.text.trim(),
             'shuttle': {
               'shuttle_name': _shuttleNameController.text.trim(),
               'license_plate': _licensePlateController.text.trim(),
               'shuttle_type': _shuttleTypeController.text.trim(),
               'capacity': int.parse(_capacityController.text.trim()),
-              'route': _routeController.text.trim(),
+              'route': _routeController.text.trim(), // Single route
+              'main_stops': _mainStops, // List of main stops
               'status': 'Active',
             },
           };
@@ -95,7 +137,6 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
     }
   }
 
-  // Update driver details
   Future<void> updateDriverDetails() async {
     try {
       final user = _auth.currentUser;
@@ -107,7 +148,8 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
             'license_plate': _licensePlateController.text.trim(),
             'shuttle_type': _shuttleTypeController.text.trim(),
             'capacity': int.parse(_capacityController.text.trim()),
-            'route': _routeController.text.trim(),
+            'route': _routeController.text.trim(), // Single route
+            'main_stops': _mainStops, // List of main stops
             'status': 'Active',
           },
         };
@@ -137,7 +179,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Driver Details'),
+        title: Text('$_shuttleNo '),
         backgroundColor: Colors.green,
       ),
       body: Padding(
@@ -147,6 +189,14 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Text(
+                      'Driver Name: $_driverName',
+                      style: const TextStyle(fontSize: 22),
+                    ),
+                    Text(
+                      'Shuttle Number: $_shuttleNo',
+                      style: const TextStyle(fontSize: 22),
+                    ),
                     Text(
                       'Shuttle Name: ${_driverData?['shuttle']['shuttle_name'] ?? 'N/A'}',
                       style: const TextStyle(fontSize: 22),
@@ -163,8 +213,14 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                       'Capacity: ${_driverData?['shuttle']['capacity'] ?? 'N/A'}',
                       style: const TextStyle(fontSize: 22),
                     ),
+                    // Display route
                     Text(
                       'Route: ${_driverData?['shuttle']['route'] ?? 'N/A'}',
+                      style: const TextStyle(fontSize: 22),
+                    ),
+                    // Display main stops
+                    Text(
+                      'Main Stops: ${_mainStops.isNotEmpty ? _mainStops.join(", ") : 'N/A'}',
                       style: const TextStyle(fontSize: 22),
                     ),
                     Text(
@@ -185,12 +241,12 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
               )
             : Form(
                 key: _formKey,
-                child: Column(
+                child: ListView(
                   children: [
                     TextFormField(
                       controller: _shuttleNameController,
                       decoration:
-                          const InputDecoration(labelText: 'Shuttle Name'),
+                          const InputDecoration(labelText: 'Driver Name'),
                       validator: (value) => value == null || value.isEmpty
                           ? 'Enter shuttle name'
                           : null,
@@ -223,12 +279,54 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                           : null,
                     ),
                     const SizedBox(height: 20),
+                    // Route input
                     TextFormField(
                       controller: _routeController,
-                      decoration: const InputDecoration(labelText: 'Route'),
+                      decoration: const InputDecoration(
+                          labelText: 'Route (e.g., NSBM - Colombo)'),
                       validator: (value) =>
                           value == null || value.isEmpty ? 'Enter route' : null,
                     ),
+                    const SizedBox(height: 20),
+                    // Main stops input with add button
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: _mainStopController,
+                            decoration: const InputDecoration(
+                                labelText: 'Add Main Stop'),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add_circle),
+                          onPressed: _addMainStop,
+                        ),
+                      ],
+                    ),
+                    // Display added main stops
+                    if (_mainStops.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 10),
+                          const Text(
+                            'Current Main Stops:',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          Wrap(
+                            spacing: 8.0,
+                            children: _mainStops.map((mainStop) {
+                              return Chip(
+                                label: Text(mainStop),
+                                onDeleted: () => _removeMainStop(mainStop),
+                                deleteIcon: const Icon(Icons.cancel),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: _phoneController,
@@ -240,9 +338,11 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                     ),
                     const SizedBox(height: 30),
                     ElevatedButton(
-                      onPressed: _isSubmitted
-                          ? updateDriverDetails
-                          : saveDriverDetails,
+                      onPressed: _mainStops.isNotEmpty
+                          ? (_isSubmitted
+                              ? updateDriverDetails
+                              : saveDriverDetails)
+                          : null, // Disable if no main stops
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 50, vertical: 15),
@@ -262,5 +362,18 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
               ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // Clean up controllers
+    _shuttleNameController.dispose();
+    _licensePlateController.dispose();
+    _shuttleTypeController.dispose();
+    _capacityController.dispose();
+    _routeController.dispose();
+    _mainStopController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 }

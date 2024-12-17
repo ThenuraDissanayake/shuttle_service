@@ -25,6 +25,32 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  Future<String> _getNextShuttleNumber() async {
+    // Reference to a special document that will track the last shuttle number
+    DocumentReference counterRef =
+        _firestore.collection('counters').doc('shuttle_number');
+
+    // Use a transaction to ensure atomic increment
+    return _firestore.runTransaction((transaction) async {
+      DocumentSnapshot counterSnap = await transaction.get(counterRef);
+
+      if (!counterSnap.exists) {
+        // If the counter doesn't exist, create it and start from 1
+        transaction.set(counterRef, {'last_shuttle_number': 0});
+        return 'Shuttle No1';
+      }
+
+      // Get the last shuttle number and increment
+      int lastNumber = counterSnap['last_shuttle_number'] + 1;
+
+      // Update the counter
+      transaction.update(counterRef, {'last_shuttle_number': lastNumber});
+
+      // Return the new shuttle number
+      return 'Shuttle No$lastNumber';
+    });
+  }
+
   Future<void> registerUser() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedRole == null) {
@@ -42,6 +68,10 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
           password: _passwordController.text.trim(),
         );
 
+        // For drivers (owners), generate a shuttle number
+        String shuttleNumber =
+            _selectedRole == 'Driver' ? await _getNextShuttleNumber() : '';
+
         // Prepare Firestore data
         final userData = {
           'name': _nameController.text.trim(),
@@ -50,6 +80,8 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
               ? 'Owner'
               : _selectedRole, // Store as 'Owner' in Firestore if 'Driver' is selected
           'createdAt': FieldValue.serverTimestamp(),
+          // Add Shuttle Number for Drivers
+          if (_selectedRole == 'Driver') 'Shuttle_No': shuttleNumber,
         };
 
         // Save data in Firestore
@@ -61,7 +93,12 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
             .set(userData);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration successful!')),
+          SnackBar(
+            content: _selectedRole == 'Driver'
+                ? Text(
+                    'Registration successful! Your Shuttle Number is: $shuttleNumber')
+                : const Text('Registration successful!'),
+          ),
         );
 
         // Navigate to the appropriate dashboard
@@ -241,5 +278,15 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // Clean up controllers when the widget is disposed
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 }
