@@ -295,7 +295,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                           child: TextFormField(
                             controller: _mainStopController,
                             decoration: const InputDecoration(
-                                labelText: 'Add Main Stop'),
+                                labelText: 'Add Main Stop/Stops'),
                           ),
                         ),
                         IconButton(

@@ -14,22 +14,15 @@ class _ShuttleManagementPageState extends State<ShuttleManagementPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool _isActive = false; // Shuttle active/inactive status
-  Map<DateTime, bool> _activeDays = {}; // Active days with toggle states
+  TimeOfDay _morningJourneyTime =
+      TimeOfDay(hour: 8, minute: 0); // Default 8:00 AM
+  TimeOfDay _eveningJourneyTime =
+      TimeOfDay(hour: 16, minute: 0); // Default 4:00 PM
 
   @override
   void initState() {
     super.initState();
-    _initializeActiveDays();
     _fetchShuttleDetails();
-  }
-
-  // Initialize active days (today + next 2 days)
-  void _initializeActiveDays() {
-    final today = DateTime.now();
-    for (int i = 0; i < 3; i++) {
-      final date = DateTime(today.year, today.month, today.day + i);
-      _activeDays[date] = false; // Default to "off"
-    }
   }
 
   // Fetch shuttle details and sync with Firestore
@@ -40,57 +33,75 @@ class _ShuttleManagementPageState extends State<ShuttleManagementPage> {
           await _firestore.collection('drivers').doc(user.uid).get();
       if (driverDoc.exists) {
         final driverData = driverDoc.data() as Map<String, dynamic>;
-
-        // Update active status and active days from Firestore
         setState(() {
           _isActive = driverData['shuttle']['status'] == 'Active';
-
-          if (driverData['shuttle']['active_days'] != null) {
-            final firestoreDays =
-                List.from(driverData['shuttle']['active_days']);
-            for (var timestamp in firestoreDays) {
-              final date = (timestamp as Timestamp).toDate();
-              _activeDays[date] = true; // Mark as active
-            }
+          // Fetch the saved journey times from Firestore, if they exist
+          if (driverData['morning_journey_time'] != null) {
+            _morningJourneyTime = TimeOfDay.fromDateTime(
+                (driverData['morning_journey_time'] as Timestamp).toDate());
+          }
+          if (driverData['evening_journey_time'] != null) {
+            _eveningJourneyTime = TimeOfDay.fromDateTime(
+                (driverData['evening_journey_time'] as Timestamp).toDate());
           }
         });
       }
     }
   }
 
-  // Update shuttle status in Firestore
-  Future<void> _updateShuttleStatus() async {
+  // Update shuttle status and journey times in Firestore
+  Future<void> _updateShuttleDetails() async {
     final user = _auth.currentUser;
     if (user != null) {
       await _firestore.collection('drivers').doc(user.uid).update({
         'shuttle.status': _isActive ? 'Active' : 'Inactive',
+        'morning_journey_time': Timestamp.fromDate(DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day,
+            _morningJourneyTime.hour,
+            _morningJourneyTime.minute)),
+        'evening_journey_time': Timestamp.fromDate(DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day,
+            _eveningJourneyTime.hour,
+            _eveningJourneyTime.minute)),
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text(_isActive ? 'Shuttle activated!' : 'Shuttle deactivated!'),
+          content: Text(_isActive
+              ? 'Shuttle activated and times updated!'
+              : 'Shuttle deactivated and times updated!'),
         ),
       );
     }
   }
 
-  // Update active days in Firestore
-  Future<void> _updateActiveDaysInFirestore() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      final activeDaysTimestamps = _activeDays.entries
-          .where((entry) => entry.value) // Filter for active days
-          .map((entry) => Timestamp.fromDate(entry.key))
-          .toList();
-
-      await _firestore.collection('drivers').doc(user.uid).update({
-        'shuttle.active_days': activeDaysTimestamps,
+  // Function to show time picker for morning journey
+  Future<void> _pickMorningJourneyTime(BuildContext context) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _morningJourneyTime,
+    );
+    if (pickedTime != null && pickedTime != _morningJourneyTime) {
+      setState(() {
+        _morningJourneyTime = pickedTime;
       });
+    }
+  }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Active days updated successfully!')),
-      );
+  // Function to show time picker for evening journey
+  Future<void> _pickEveningJourneyTime(BuildContext context) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _eveningJourneyTime,
+    );
+    if (pickedTime != null && pickedTime != _eveningJourneyTime) {
+      setState(() {
+        _eveningJourneyTime = pickedTime;
+      });
     }
   }
 
@@ -103,56 +114,51 @@ class _ShuttleManagementPageState extends State<ShuttleManagementPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Shuttle Active/Inactive Toggle
-              SwitchListTile(
-                title: const Text('Shuttle Active Status'),
-                value: _isActive,
-                onChanged: (value) {
-                  setState(() {
-                    _isActive = value;
-                  });
-                  _updateShuttleStatus();
-                },
-              ),
-              const SizedBox(height: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Shuttle Active/Inactive Toggle Switch
+            SwitchListTile(
+              title: const Text('Shuttle Active Status'),
+              subtitle: const Text('Toggle shuttle status (Active/Inactive)'),
+              value: _isActive,
+              onChanged: (value) {
+                setState(() {
+                  _isActive = value; // Toggle status
+                });
+                _updateShuttleDetails();
+              },
+            ),
+            const SizedBox(height: 20),
 
-              // Active Days Toggles
-              const Text('Active Days for Bookings',
-                  style: TextStyle(fontSize: 18)),
-              const SizedBox(height: 10),
-              Column(
-                children: _activeDays.entries.map((entry) {
-                  final date = entry.key;
-                  final isActive = entry.value;
-                  return SwitchListTile(
-                    title: Text(
-                      "${date.day}/${date.month}/${date.year}",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    value: isActive,
-                    onChanged: (value) {
-                      setState(() {
-                        _activeDays[date] = value;
-                      });
-                      _updateActiveDaysInFirestore();
-                    },
-                  );
-                }).toList(),
+            // Morning Journey Time Picker
+            ListTile(
+              title: const Text('Morning Journey Time (24-Hour Format)'),
+              subtitle: Text("${_morningJourneyTime.format(context)}"),
+              trailing: IconButton(
+                icon: const Icon(Icons.access_time),
+                onPressed: () => _pickMorningJourneyTime(context),
               ),
-              const SizedBox(height: 20),
+            ),
+            const SizedBox(height: 20),
 
-              // Additional Features Placeholder
-              const Text('Additional Features', style: TextStyle(fontSize: 18)),
-              const Text(
-                'Include any additional sections here such as booking requests.',
-                style: TextStyle(color: Colors.grey),
+            // Evening Journey Time Picker
+            ListTile(
+              title: const Text('Evening Journey Time (24-Hour Format)'),
+              subtitle: Text("${_eveningJourneyTime.format(context)}"),
+              trailing: IconButton(
+                icon: const Icon(Icons.access_time),
+                onPressed: () => _pickEveningJourneyTime(context),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+
+            // Save Button to update details
+            ElevatedButton(
+              onPressed: _updateShuttleDetails,
+              child: const Text('Save Shuttle Details'),
+            ),
+          ],
         ),
       ),
     );

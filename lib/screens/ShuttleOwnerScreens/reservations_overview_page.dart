@@ -20,9 +20,9 @@ class ReservationsOverviewPage extends StatelessWidget {
               child: ListView(
                 children: [
                   _buildReservationCard(
-                      'Shuttle 1', '10:00 AM', '15 seats reserved'),
+                      'Morning Journey', '10:00 AM', '15 seats reserved'),
                   _buildReservationCard(
-                      'Shuttle 2', '11:00 AM', 'No seats left'),
+                      'evening Journey', '11:00 AM', 'No seats left'),
                 ],
               ),
             ),
