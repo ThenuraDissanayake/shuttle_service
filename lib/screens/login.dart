@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'userScreens/dashboard.dart'; // Passenger dashboard
 import 'ShuttleOwnerScreens/shuttledashboard.dart'; // Shuttle owner dashboard
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

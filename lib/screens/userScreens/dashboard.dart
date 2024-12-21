@@ -118,6 +118,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
 
+          const Spacer(),
+
           // Buttons for various actions
           // Expanded(
           //   child: GridView.count(
@@ -179,7 +181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
               children: [
-                _DashCard(
+                _DashCard01(
                   icon: Icons.event_seat,
                   title: 'Reserve a Shuttle',
                   onTap: () {
@@ -202,6 +204,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _DashCard(
                   icon: Icons.bookmark,
                   title: 'My Shuttle List',
+                  onTap: () {
+                    // Navigate to my shuttle list page
+                  },
+                ),
+                _DashCard(
+                  icon: Icons.report,
+                  title: 'Make a complaint',
                   onTap: () {
                     // Navigate to my shuttle list page
                   },
@@ -238,21 +247,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           //       ),
           //     ],
           //   ),
-          // ),
-
-          // Bottom navigation bar
-          // BottomNavigationBar(
-          //   backgroundColor: Colors.green,
-          //   items: const [
-          //     BottomNavigationBarItem(
-          //       icon: Icon(Icons.list),
-          //       label: 'Activities',
-          //     ),
-          //     BottomNavigationBarItem(
-          //       icon: Icon(Icons.notifications),
-          //       label: 'Alerts',
-          //     ),
-          //   ],
           // ),
         ],
       ),
@@ -342,12 +336,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required VoidCallback onTap,
   }) {
     return SizedBox(
-      height: 120, // Adjust the height
+      height: 100, // Adjust the height
       child: Card(
         color: Colors.white,
-        margin: const EdgeInsets.symmetric(vertical: 10.0),
+        margin: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
         elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: InkWell(
           onTap: onTap,
           child: Row(
@@ -368,4 +362,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+}
+
+Widget _DashCard01({
+  required IconData icon,
+  required String title,
+  required VoidCallback onTap,
+}) {
+  return SizedBox(
+    height: 120,
+    child: Card(
+      margin: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      elevation: 3,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: [
+                Colors.green.shade100, // Soft green
+                Colors.white, // Light white gradient
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                blurRadius: 6,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const SizedBox(width: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  // color: const Color.fromARGB(255, 255, 255, 255), // Soft circle background
+                ),
+                child: Icon(
+                  icon,
+                  color: const Color.fromARGB(
+                      255, 0, 0, 0), // Slightly darker green icon
+                  size: 40,
+                ),
+              ),
+              const SizedBox(width: 20),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: const Color.fromARGB(
+                      255, 0, 0, 0), // Matching soft green text
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
