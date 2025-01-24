@@ -108,15 +108,39 @@ class ShuttleDetailsPage extends StatelessWidget {
                             ),
                       const SizedBox(height: 16),
                       _buildSectionTitle('Journey Times'),
+                      const SizedBox(height: 24),
                       if (morningJourneyTime != null)
                         Text(
                           'Morning Journey: ${_formatTimestamp(morningJourneyTime, context)}',
                         ),
+
+                      // Book Now Button
+                      ElevatedButton(
+                        onPressed: () {
+                          // TODO: Implement booking logic
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: const Text(
+                          'Reserve Now',
+                          style: TextStyle(fontSize: 18, color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
                       if (eveningJourneyTime != null)
                         Text(
                           'Evening Journey: ${_formatTimestamp(eveningJourneyTime, context)}',
                         ),
-                      const SizedBox(height: 24),
+                      // const SizedBox(height: 24),
                       // Book Now Button
                       ElevatedButton(
                         onPressed: () {
