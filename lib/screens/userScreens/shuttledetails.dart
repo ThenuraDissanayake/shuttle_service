@@ -24,6 +24,24 @@ class ShuttleDetailsPage extends StatelessWidget {
     return null;
   }
 
+  Future<Map<String, dynamic>?> _fetchDriverBookings(String driverName) async {
+    try {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection(
+              'driver_bookings') // Assuming your collection is named "driver_bookings"
+          .where('driver_name', isEqualTo: driverName)
+          .limit(1)
+          .get();
+
+      if (docSnapshot.docs.isNotEmpty) {
+        return docSnapshot.docs.first.data();
+      }
+    } catch (e) {
+      debugPrint('Error fetching driver bookings: $e');
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,6 +132,37 @@ class ShuttleDetailsPage extends StatelessWidget {
                         Text(
                           'Morning Journey: ${_formatTimestamp(morningJourneyTime, context)}',
                         ),
+
+                      // Fetch bookings and show number of bookings for morning and evening journeys
+                      FutureBuilder<Map<String, dynamic>?>(
+                        future: _fetchDriverBookings(driverName),
+                        builder: (context, bookingSnapshot) {
+                          if (bookingSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (bookingSnapshot.hasError) {
+                            return Text(
+                                'Error fetching bookings: ${bookingSnapshot.error}');
+                          } else if (!bookingSnapshot.hasData ||
+                              bookingSnapshot.data == null) {
+                            return const Text('No bookings data available.');
+                          } else {
+                            final bookings = bookingSnapshot.data!;
+                            final morningBookings =
+                                bookings['bookings_for_morning'] ?? 0;
+                            final eveningBookings =
+                                bookings['bookings_for_evening'] ?? 0;
+
+                            return Column(
+                              children: [
+                                Text('Bookings: $morningBookings / $capacity'),
+                                // Text('Evening Bookings: $eveningBookings'),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+
                       // Morning Journey Reserve Now Button with Unique ID
                       ElevatedButton(
                         onPressed: () {
@@ -153,6 +202,37 @@ class ShuttleDetailsPage extends StatelessWidget {
                         Text(
                           'Evening Journey: ${_formatTimestamp(eveningJourneyTime, context)}',
                         ),
+
+                      // Fetch bookings and show number of bookings for morning and evening journeys
+                      FutureBuilder<Map<String, dynamic>?>(
+                        future: _fetchDriverBookings(driverName),
+                        builder: (context, bookingSnapshot) {
+                          if (bookingSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (bookingSnapshot.hasError) {
+                            return Text(
+                                'Error fetching bookings: ${bookingSnapshot.error}');
+                          } else if (!bookingSnapshot.hasData ||
+                              bookingSnapshot.data == null) {
+                            return const Text('No bookings data available.');
+                          } else {
+                            final bookings = bookingSnapshot.data!;
+                            final morningBookings =
+                                bookings['bookings_for_morning'] ?? 0;
+                            final eveningBookings =
+                                bookings['bookings_for_evening'] ?? 0;
+
+                            return Column(
+                              children: [
+                                // Text('Morning Bookings: $morningBookings'),
+                                Text(' Bookings: $eveningBookings / $capacity'),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+
                       // Evening Journey Reserve Now Button with Unique ID
                       ElevatedButton(
                         onPressed: () {
