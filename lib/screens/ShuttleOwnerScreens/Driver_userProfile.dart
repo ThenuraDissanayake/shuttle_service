@@ -1,8 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:shuttle_service/screens/welcome.dart';
-import 'dashboard.dart';
+import 'driver_pro.dart';
+import 'shuttledashboard.dart';
 
 class UserProfilePage extends StatelessWidget {
   const UserProfilePage({super.key});
@@ -30,7 +31,7 @@ class UserProfilePage extends StatelessWidget {
       final user = FirebaseAuth.instance.currentUser; // Get current user
       if (user != null) {
         final doc = await FirebaseFirestore.instance
-            .collection('passengers') // Adjust collection name if needed
+            .collection('owners') // Adjust collection name if needed
             .doc(user.uid)
             .get();
 
@@ -60,7 +61,7 @@ class UserProfilePage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
+            onPressed: () => _logout(context), // Call the logout function
           ),
         ],
       ),
@@ -82,12 +83,6 @@ class UserProfilePage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
                     child: Column(
                       children: [
-                        // const CircleAvatar(
-                        //   radius: 60,
-                        //   backgroundImage: AssetImage(
-                        //       'assets/profile_placeholder.png'), // Placeholder image
-                        // ),
-                        // const SizedBox(height: 10),
                         Text(
                           userData['name'] ??
                               'Unknown User', // Display user name
@@ -110,7 +105,12 @@ class UserProfilePage extends StatelessWidget {
                           icon: Icons.person,
                           title: 'Edit Personal Details',
                           onTap: () {
-                            // Navigate to edit personal details screen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const DriverDetailsPage()),
+                            );
                           },
                         ),
                         _buildProfileOption(
@@ -122,7 +122,7 @@ class UserProfilePage extends StatelessWidget {
                         ),
                         _buildProfileOption(
                           icon: Icons.payment,
-                          title: 'Paymeent Methords',
+                          title: 'Bank Details',
                           onTap: () {
                             // Navigate to booking preferences screen
                           },
@@ -146,7 +146,7 @@ class UserProfilePage extends StatelessWidget {
         backgroundColor: Colors.green,
         selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
         unselectedItemColor: const Color.fromARGB(255, 255, 255, 255),
-        currentIndex: 3, // Default active tab
+        currentIndex: 3, // Set the current tab index (Account tab)
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -168,10 +168,10 @@ class UserProfilePage extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const DashboardScreen(),
+                  builder: (context) => const OwnerDashboardPage(),
                 ),
               );
               break;
@@ -182,12 +182,7 @@ class UserProfilePage extends StatelessWidget {
               // Navigate to Notifications page
               break;
             case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
+              // Stay on the current page
               break;
           }
         },

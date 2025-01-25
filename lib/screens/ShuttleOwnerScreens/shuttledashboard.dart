@@ -5,6 +5,7 @@ import 'shuttleManagement.dart';
 import 'reservations_overview_page.dart';
 import 'booking_requests_management.dart';
 import 'driver_pro.dart';
+import 'Driver_userProfile.dart';
 
 class OwnerDashboardPage extends StatefulWidget {
   const OwnerDashboardPage({super.key});
@@ -127,148 +128,265 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.green,
-        title: Text('Hi, $_userName'),
+        title: Align(
+          alignment: Alignment.centerLeft, // Align title to the left
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start, // Align text to the left
+            children: [
+              Text(
+                'Hi, $_userName',
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15), // Set text color to white
+              ),
+              const Text(
+                'Welcome to UniShuttle',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18), // Set text color to white
+              ),
+            ],
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.account_circle),
             onPressed: () {
-              // Navigate to profile screen or any other screen
+              // Navigate to User Profile screen
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const DriverDetailsPage()),
+                  builder: (context) => const UserProfilePage(),
+                ),
               );
             },
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text('Shuttle Status Overview',
-                style: TextStyle(fontSize: 24)),
-            Row(
-              children: [
-                _buildStatusCard('Shuttle 1', 'Available'),
-              ],
-            ),
-            const SizedBox(height: 20),
-            const Text('Morning Journey', style: TextStyle(fontSize: 24)),
-            Expanded(
-              child: ListView(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // const Padding(
+              //   padding: EdgeInsets.symmetric(vertical: 20.0),
+              //   child: Column(
+              //     mainAxisAlignment: MainAxisAlignment.center,
+              //     children: [
+              //       Icon(
+              //         Icons.directions_bus,
+              //         color: Colors.green,
+              //         size: 50,
+              //       ),
+              //       SizedBox(
+              //           height: 10), // Adds space between the icon and text
+              //       Text(
+              //         'UniShuttle',
+              //         style: TextStyle(
+              //           fontSize: 32,
+              //           fontWeight: FontWeight.bold,
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
+              const SizedBox(height: 30),
+              // const Align(
+              //   alignment: Alignment.centerLeft, // Aligns the text to the left
+              //   child: Text(
+              //     'Morning Journey',
+              //     style: TextStyle(fontSize: 24),
+              //   ),
+              // ),
+              const Align(
+                alignment: Alignment.centerLeft, // Aligns the text to the left
+                child: Text(
+                  'Shuttle Overview',
+                  style: TextStyle(fontSize: 24),
+                ),
+              ),
+              const SizedBox(height: 30),
+              ListView(
+                physics:
+                    const NeverScrollableScrollPhysics(), // Prevent nested scroll
+                shrinkWrap: true, // Adjust to fit the content
                 children: [
                   _buildReservationCard(
-                      'Shuttle day 1', '', '20 seats reserved'),
-                  _buildReservationCard('Shuttle day 2', '', 'No seats left'),
-                  _buildReservationCard(
-                      'Shuttle day3', '', '15 seats reserved'),
+                      'Morning Journey', '', '20 seats reserved'),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            const Text('evening Journey', style: TextStyle(fontSize: 24)),
-            Expanded(
-              child: ListView(
+              const SizedBox(height: 10),
+
+              // const Text('Evening Journey', style: TextStyle(fontSize: 24)),
+              ListView(
+                physics:
+                    const NeverScrollableScrollPhysics(), // Prevent nested scroll
+                shrinkWrap: true, // Adjust to fit the content
                 children: [
                   _buildReservationCard(
-                      'Shuttle day 1', '', '20 seats reserved'),
-                  _buildReservationCard('Shuttle day 2', '', 'No seats left'),
-                  _buildReservationCard(
-                      'Shuttle day3', '', '15 seats reserved'),
+                      'Evening Journey', '', '20 seats reserved'),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 30),
+
+              const Align(
+                alignment: Alignment.centerLeft, // Aligns the text to the left
+                child: Text(
+                  'Shuttle Oprations',
+                  style: TextStyle(fontSize: 24),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Column(
+                  children: [
+                    _DashCard(
+                      icon: Icons.bus_alert,
+                      title: 'Shuttle status',
+                      onTap: () {
+                        // Navigate to shuttle reservation page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const ShuttleManagementPage(), // Replace with your destination page
+                          ),
+                        );
+                      },
+                    ),
+                    _DashCard(
+                      icon: Icons.emoji_people,
+                      title: 'Requests',
+                      onTap: () {
+                        // Navigate to special shuttle request page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const BookingRequestsPage(), // Replace with your destination page
+                          ),
+                        );
+                      },
+                    ),
+                    _DashCard(
+                      icon: Icons.event_seat,
+                      title: 'Reservation Overview',
+                      onTap: () {
+                        // Navigate to my shuttle list page
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ReservationsOverviewPage(), // Replace with your destination page
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              // GestureDetector(
+              //   onTap: () {
+              //     // Navigator.push(
+              //     //   context,
+              //     //   MaterialPageRoute(
+              //     //     builder: (context) =>
+              //     //         const ShuttleStatusPage(), // Replace with your destination page
+              //     //   ),
+              //     // );
+              //   },
+              //   child: const Text(
+              //     'Shuttle Status Overview',
+              //     style: TextStyle(fontSize: 24),
+              //   ),
+              // ),
+              // Row(
+              //   children: [
+              //     _buildStatusCard('Shuttle 1', 'Available'),
+              //   ],
+              // ),
+              const SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
+      // Bottom navigation bar
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.green,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
+        selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
+        unselectedItemColor: const Color.fromARGB(255, 255, 255, 255),
         currentIndex: 0, // Default active tab
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Activities',
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_customize),
+            label: 'Shuttle Operations',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
             label: 'Notifications',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.directions_bus),
-            label: 'Shuttle Management',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.book_online),
-            label: 'Reservations',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.book_online),
-            label: 'Booking Requests',
+            icon: Icon(Icons.account_circle_rounded),
+            label: 'Account',
           ),
         ],
         onTap: (index) {
           switch (index) {
             case 0:
-              // Navigate to Activities page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OwnerDashboardPage(),
+                ),
+              );
               break;
             case 1:
-              // Navigate to Notifications page
+              // Navigate to Activities page
               break;
             case 2:
-              // Navigate to Shuttle Management page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ShuttleManagementPage(),
-                ),
-              );
+              // Navigate to Notifications page
               break;
             case 3:
-              // Navigate to Reservations page
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ReservationsOverviewPage(),
-                ),
-              );
-              break;
-            case 4:
-              // Navigate to Booking Requests page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const BookingRequestsPage(),
+                  builder: (context) => const UserProfilePage(),
                 ),
               );
               break;
           }
         },
+        selectedLabelStyle: TextStyle(fontSize: 12), // Adjust font size
+        unselectedLabelStyle: TextStyle(fontSize: 12),
       ),
     );
   }
 
-  Widget _buildStatusCard(String shuttleName, String status) {
-    return Card(
-      elevation: 5,
-      margin: const EdgeInsets.all(8),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Text(shuttleName,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text(status, style: const TextStyle(fontSize: 16)),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildStatusCard(String shuttleName, String status) {
+  //   return Card(
+  //     elevation: 5,
+  //     margin: const EdgeInsets.all(8),
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(10),
+  //       child: Column(
+  //         children: [
+  //           Text(shuttleName,
+  //               style:
+  //                   const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+  //           Text(status, style: const TextStyle(fontSize: 16)),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildReservationCard(String shuttleName, String time, String seats) {
     return Card(
@@ -285,6 +403,39 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                 style: const TextStyle(fontSize: 16)),
             Text(seats, style: const TextStyle(fontSize: 16)),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _DashCard({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      height: 80, // Adjust the height
+      child: Card(
+        color: Colors.white,
+        margin: const EdgeInsets.symmetric(vertical: 10.0),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        child: InkWell(
+          onTap: onTap,
+          child: Row(
+            mainAxisAlignment:
+                MainAxisAlignment.center, // Centers content horizontally
+            children: [
+              Icon(icon,
+                  color: const Color.fromARGB(255, 68, 72, 68), size: 30),
+              const SizedBox(width: 10), // Spacing between icon and text
+              Text(
+                title,
+                style: const TextStyle(fontSize: 18),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

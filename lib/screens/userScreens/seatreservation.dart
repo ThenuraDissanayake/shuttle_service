@@ -1,25 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shuttle_service/screens/userScreens/shuttledetails.dart';
 
-class SeatReservationPage extends StatefulWidget {
-  const SeatReservationPage({super.key});
+class FindActiveShuttlesPage extends StatefulWidget {
+  const FindActiveShuttlesPage({Key? key}) : super(key: key);
 
   @override
-  _SeatReservationPageState createState() => _SeatReservationPageState();
+  State<FindActiveShuttlesPage> createState() => _FindActiveShuttlesPageState();
 }
 
-class _SeatReservationPageState extends State<SeatReservationPage> {
-  int _selectedIndex = 0; // For bottom navigation tracking
+class _FindActiveShuttlesPageState extends State<FindActiveShuttlesPage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final TextEditingController _searchController = TextEditingController();
 
-  // Placeholder pages for bottom navigation
-  final List<Widget> _pages = [
-    const Placeholder(), // Activities Page
-    const Placeholder(), // Alerts Page
-    const Placeholder(), // Profile Page
-  ];
+  List<Map<String, dynamic>> _activeShuttles = [];
+  List<Map<String, dynamic>> _filteredShuttles = [];
 
-  void _onItemTapped(int index) {
+  @override
+  void initState() {
+    super.initState();
+    _fetchActiveShuttles();
+
+    // Listen to search input changes and filter results
+    _searchController.addListener(() {
+      _filterShuttles(_searchController.text);
+    });
+  }
+
+  // Fetch active shuttles from Firestore
+  Future<void> _fetchActiveShuttles() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('drivers') // Replace with your collection name
+          .where('shuttle.status', isEqualTo: 'Active')
+          .get();
+
+      // Convert querySnapshot to list of shuttles
+      final activeShuttles = querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+
+        return {
+          'shuttle_id': doc.id,
+          'route': data['shuttle']['route'] ?? 'Unknown Route',
+          'driver_name': data['driver_name'] ?? 'Unknown Driver',
+          'license_plate': data['shuttle']['license_plate'] ?? 'Unknown Plate',
+          'morning_journey_time': data['morning_journey_time'] ??
+              Timestamp.fromDate(DateTime.now()),
+          'evening_journey_time': data['evening_journey_time'] ??
+              Timestamp.fromDate(DateTime.now().add(const Duration(hours: 12))),
+        };
+      }).toList();
+
+      setState(() {
+        _activeShuttles = activeShuttles;
+        _filteredShuttles = activeShuttles; // Initially, display all shuttles
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching active shuttles: $e')),
+      );
+    }
+  }
+
+  // Filter shuttles by route name
+  void _filterShuttles(String query) {
+    final filtered = _activeShuttles.where((shuttle) {
+      final route = (shuttle['route'] as String).toLowerCase();
+      final searchQuery = query.toLowerCase();
+      return route.contains(searchQuery);
+    }).toList();
+
     setState(() {
-      _selectedIndex = index;
+      _filteredShuttles = filtered;
     });
   }
 
@@ -27,147 +81,92 @@ class _SeatReservationPageState extends State<SeatReservationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text('Find Active Shuttles'),
         backgroundColor: Colors.green,
-        title: const Text('Seat Reservation'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle),
-            onPressed: () {
-              // Navigate to profile screen
-            },
-          ),
-        ],
       ),
-      body: Column(
-        children: [
-          // Page Title
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.event_seat,
-                  color: Colors.green,
-                  size: 50,
-                ),
-                SizedBox(width: 10),
-                Text(
-                  'Reserve Your Seat',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Shuttle List with Availability
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20.0),
-              itemCount: 5, // Example: 5 shuttles
-              itemBuilder: (context, index) {
-                return _buildShuttleCard(
-                  shuttleName: 'Shuttle ${index + 1}',
-                  route: 'Route ${index + 1}: NSBM -> Colombo',
-                  availableSeats: 40 - (index * 8), // Example seat data
-                  onReserve: () {
-                    // Handle reservation
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.green,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.black54,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Activities',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Alerts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShuttleCard({
-    required String shuttleName,
-    required String route,
-    required int availableSeats,
-    required VoidCallback onReserve,
-  }) {
-    return Card(
-      elevation: 5,
-      margin: const EdgeInsets.only(bottom: 20.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Padding(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Row(
+        child: Column(
           children: [
-            const Icon(
-              Icons.directions_bus,
-              size: 50,
-              color: Colors.green,
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    shuttleName,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    route,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'Available Seats: $availableSeats',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: availableSeats > 0 ? Colors.black : Colors.red,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                shape: RoundedRectangleBorder(
+            // Search Bar
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search by Route',
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
+                suffixIcon: const Icon(Icons.search),
               ),
-              onPressed: availableSeats > 0 ? onReserve : null,
-              child: const Text('Reserve'),
             ),
+            const SizedBox(
+                height: 16), // Add space between search bar and results
+
+            // Show active shuttles or a loading indicator
+            _filteredShuttles.isEmpty
+                ? const Expanded(
+                    child: Center(child: Text('No active shuttles found.')),
+                  )
+                : Expanded(
+                    child: ListView.builder(
+                      itemCount: _filteredShuttles.length,
+                      itemBuilder: (context, index) {
+                        final shuttle = _filteredShuttles[index];
+                        final morningJourneyTime =
+                            shuttle['morning_journey_time'] as Timestamp;
+                        final eveningJourneyTime =
+                            shuttle['evening_journey_time'] as Timestamp;
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ListTile(
+                            title: Text(
+                              shuttle['route'],
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Driver: ${shuttle['driver_name']}'),
+                                Text(
+                                    'License Plate: ${shuttle['license_plate']}'),
+                                Text(
+                                    'Morning Journey: ${_formatTimestamp(morningJourneyTime, context)}'),
+                                Text(
+                                    'Evening Journey: ${_formatTimestamp(eveningJourneyTime, context)}'),
+                              ],
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.ads_click),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ShuttleDetailsPage(
+                                      shuttleId: shuttle['shuttle_id'],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatTimestamp(Timestamp timestamp, BuildContext context) {
+    try {
+      final date = timestamp.toDate();
+      return TimeOfDay.fromDateTime(date).format(context);
+    } catch (e) {
+      return 'Invalid Time';
+    }
   }
 }

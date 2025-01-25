@@ -18,6 +18,8 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   final TextEditingController _routeController = TextEditingController();
   final TextEditingController _mainStopController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _priceController =
+      TextEditingController(); // New price controller
 
   bool _isEditing = false;
   bool _isSubmitted = false;
@@ -25,7 +27,6 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   String _driverName = "Unknown";
   String _shuttleNo = "";
 
-  // List to store multiple main stops
   List<String> _mainStops = [];
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -64,8 +65,10 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
               _driverData?['shuttle']['shuttle_type'] ?? '';
           _capacityController.text =
               _driverData?['shuttle']['capacity']?.toString() ?? '';
+          _priceController.text =
+              _driverData?['shuttle']['full_journey_price']?.toString() ??
+                  ''; // Load price
 
-          // Fetch route and main stops
           _routeController.text = _driverData?['shuttle']['route'] ?? '';
 
           dynamic mainStopsData = _driverData?['shuttle']['main_stops'];
@@ -80,18 +83,16 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
     }
   }
 
-  // Method to add a new main stop
   void _addMainStop() {
     String newMainStop = _mainStopController.text.trim();
     if (newMainStop.isNotEmpty && !_mainStops.contains(newMainStop)) {
       setState(() {
         _mainStops.add(newMainStop);
-        _mainStopController.clear(); // Clear the input after adding
+        _mainStopController.clear();
       });
     }
   }
 
-  // Method to remove a main stop
   void _removeMainStop(String mainStop) {
     setState(() {
       _mainStops.remove(mainStop);
@@ -111,8 +112,10 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
               'license_plate': _licensePlateController.text.trim(),
               'shuttle_type': _shuttleTypeController.text.trim(),
               'capacity': int.parse(_capacityController.text.trim()),
-              'route': _routeController.text.trim(), // Single route
-              'main_stops': _mainStops, // List of main stops
+              'route': _routeController.text.trim(),
+              'main_stops': _mainStops,
+              'full_journey_price':
+                  double.parse(_priceController.text.trim()), // Save price
               'status': 'Active',
             },
           };
@@ -148,8 +151,10 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
             'license_plate': _licensePlateController.text.trim(),
             'shuttle_type': _shuttleTypeController.text.trim(),
             'capacity': int.parse(_capacityController.text.trim()),
-            'route': _routeController.text.trim(), // Single route
-            'main_stops': _mainStops, // List of main stops
+            'route': _routeController.text.trim(),
+            'main_stops': _mainStops,
+            'full_journey_price':
+                double.parse(_priceController.text.trim()), // Update price
             'status': 'Active',
           },
         };
@@ -213,12 +218,14 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                       'Capacity: ${_driverData?['shuttle']['capacity'] ?? 'N/A'}',
                       style: const TextStyle(fontSize: 22),
                     ),
-                    // Display route
+                    Text(
+                      'Full Journey Price: Rs.${_driverData?['shuttle']['full_journey_price']?.toString() ?? 'N/A'}',
+                      style: const TextStyle(fontSize: 22),
+                    ),
                     Text(
                       'Route: ${_driverData?['shuttle']['route'] ?? 'N/A'}',
                       style: const TextStyle(fontSize: 22),
                     ),
-                    // Display main stops
                     Text(
                       'Main Stops: ${_mainStops.isNotEmpty ? _mainStops.join(", ") : 'N/A'}',
                       style: const TextStyle(fontSize: 22),
@@ -279,7 +286,24 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                           : null,
                     ),
                     const SizedBox(height: 20),
-                    // Route input
+                    TextFormField(
+                      controller: _priceController,
+                      decoration: const InputDecoration(
+                        labelText: 'Full Journey Price (Rs)',
+                        prefixText: 'Rs. ',
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Enter full journey price';
+                        }
+                        if (double.tryParse(value) == null) {
+                          return 'Please enter a valid price';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
                     TextFormField(
                       controller: _routeController,
                       decoration: const InputDecoration(
@@ -288,14 +312,13 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                           value == null || value.isEmpty ? 'Enter route' : null,
                     ),
                     const SizedBox(height: 20),
-                    // Main stops input with add button
                     Row(
                       children: [
                         Expanded(
                           child: TextFormField(
                             controller: _mainStopController,
                             decoration: const InputDecoration(
-                                labelText: 'Add Main Stop'),
+                                labelText: 'Add Main Stop/Stops'),
                           ),
                         ),
                         IconButton(
@@ -304,7 +327,6 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                         ),
                       ],
                     ),
-                    // Display added main stops
                     if (_mainStops.isNotEmpty)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,7 +364,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                           ? (_isSubmitted
                               ? updateDriverDetails
                               : saveDriverDetails)
-                          : null, // Disable if no main stops
+                          : null,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 50, vertical: 15),
@@ -366,7 +388,6 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
 
   @override
   void dispose() {
-    // Clean up controllers
     _shuttleNameController.dispose();
     _licensePlateController.dispose();
     _shuttleTypeController.dispose();
@@ -374,6 +395,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
     _routeController.dispose();
     _mainStopController.dispose();
     _phoneController.dispose();
+    _priceController.dispose(); // Dispose price controller
     super.dispose();
   }
 }
