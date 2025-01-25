@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shuttle_service/screens/userScreens/BookingDetailsPage.dart';
 
 class ShuttleDetailsPage extends StatelessWidget {
   final String shuttleId;
@@ -113,17 +114,29 @@ class ShuttleDetailsPage extends StatelessWidget {
                         Text(
                           'Morning Journey: ${_formatTimestamp(morningJourneyTime, context)}',
                         ),
-
-                      // Book Now Button
+                      // Morning Journey Reserve Now Button with Unique ID
                       ElevatedButton(
                         onPressed: () {
-                          // TODO: Implement booking logic
+                          final uniqueId = 'reserve_${shuttleId}_morning';
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BookingDetailsPage(
+                                journeyType: 'Morning Journey',
+                                price: price,
+                                driverName:
+                                    driverName, // Passing driver details
+                                phone: shuttle['phone'] ??
+                                    'Unknown', // Passing phone
+                              ),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 30,
-                            vertical: 12,
+                            vertical: 10,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
@@ -131,7 +144,7 @@ class ShuttleDetailsPage extends StatelessWidget {
                         ),
                         child: const Text(
                           'Reserve Now',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
+                          style: TextStyle(fontSize: 12, color: Colors.white),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -140,25 +153,37 @@ class ShuttleDetailsPage extends StatelessWidget {
                         Text(
                           'Evening Journey: ${_formatTimestamp(eveningJourneyTime, context)}',
                         ),
-                      // const SizedBox(height: 24),
-                      // Book Now Button
+                      // Evening Journey Reserve Now Button with Unique ID
                       ElevatedButton(
                         onPressed: () {
-                          // TODO: Implement booking logic
+                          final uniqueId = 'reserve_${shuttleId}_evening';
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BookingDetailsPage(
+                                journeyType: 'Evening Journey',
+                                price: price,
+                                driverName:
+                                    driverName, // Passing driver details
+                                phone: shuttle['phone'] ??
+                                    'Unknown', // Passing phone
+                              ),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 30,
-                            vertical: 12,
+                            vertical: 10,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
                         ),
                         child: const Text(
-                          'Reserve Now',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
+                          'Reserve Now ',
+                          style: TextStyle(fontSize: 12, color: Colors.white),
                         ),
                       ),
                     ],
