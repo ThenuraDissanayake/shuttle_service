@@ -14,7 +14,7 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
   bool isLoading = true;
   String? driverName;
 
-  // Fetch driver's name from the 'drivers' collection
+  // Fetch the current driver's name based on their user ID
   Future<void> _fetchDriverName() async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
@@ -26,49 +26,46 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
         return;
       }
 
-      // Fetch the driver name from the 'drivers' collection
-      QuerySnapshot driverSnapshot = await FirebaseFirestore.instance
+      // Retrieve driver details from the 'drivers' collection
+      DocumentSnapshot driverDoc = await FirebaseFirestore.instance
           .collection('drivers')
-          .where('driver_name',
-              isEqualTo: user.displayName) // Filter by displayName
+          .doc(user.uid)
           .get();
 
-      if (driverSnapshot.docs.isNotEmpty) {
+      if (driverDoc.exists) {
         setState(() {
-          driverName =
-              driverSnapshot.docs.first['driver_name']; // Getting driver_name
+          driverName = driverDoc['driver_name']; // Assuming driver_name exists
         });
-        _fetchBookingRequests(); // Once the driver's name is fetched, fetch the bookings
+        _fetchBookingRequests(); // Fetch bookings after getting the driver's name
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Driver information not found')),
         );
+        setState(() {
+          isLoading = false; // Stop loading if the driver is not found
+        });
       }
     } catch (e) {
       print('Error fetching driver name: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching driver name: $e')),
       );
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
   // Fetch booking requests for the current driver
   Future<void> _fetchBookingRequests() async {
-    if (driverName == null)
-      return; // Only fetch bookings if driverName is available
+    if (driverName == null) return;
 
     try {
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('bookings')
-          .where('driverName', isEqualTo: driverName) // Filter by driverName
-          .where('status', isEqualTo: 'Pending') // Fetch only pending requests
+          .where('driverName', isEqualTo: driverName) // Filter by driver name
+          .where('status', isEqualTo: 'Pending') // Only fetch pending requests
           .get();
-
-      if (snapshot.docs.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No booking requests found')),
-        );
-      }
 
       setState(() {
         bookingRequests = snapshot.docs
@@ -77,17 +74,20 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
                   ...doc.data() as Map<String, dynamic>,
                 })
             .toList();
-        isLoading = false;
+        isLoading = false; // Stop loading once data is fetched
       });
     } catch (e) {
       print('Error fetching booking requests: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error fetching bookings: $e')),
       );
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
-  // Handle booking request (Accept/Reject)
+  // Handle the booking request (Accept or Reject)
   Future<void> _handleBooking(String bookingId, String status) async {
     try {
       await FirebaseFirestore.instance
@@ -99,7 +99,7 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
         SnackBar(content: Text('Booking $status successfully!')),
       );
 
-      // Refresh the booking requests
+      // Refresh the booking requests after handling
       _fetchBookingRequests();
     } catch (e) {
       print('Error updating booking status: $e');
@@ -146,9 +146,9 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             Text('Journey Type: ${request['journeyType']}'),
-                            Text('Price: LKR ${request['price']}'),
+                            // Text('Price: LKR ${request['price']}'),
                             Text('Payment Method: ${request['paymentMethod']}'),
-                            Text('Phone: ${request['phone']}'),
+                            // Text('Phone: ${request['phone']}'),
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,

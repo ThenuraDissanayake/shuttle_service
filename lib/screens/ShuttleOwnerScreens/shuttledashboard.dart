@@ -49,6 +49,43 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
     }
   }
 
+  Future<Map<String, dynamic>?> _fetchDriverBookings(String driverName) async {
+    try {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection(
+              'driver_bookings') // Assuming your collection is named "driver_bookings"
+          .where('driver_name', isEqualTo: driverName)
+          .limit(1)
+          .get();
+
+      if (docSnapshot.docs.isNotEmpty) {
+        return docSnapshot.docs.first.data();
+      }
+    } catch (e) {
+      debugPrint('Error fetching driver bookings: $e');
+    }
+    return null;
+  }
+
+  Future<String?> _getDriverName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        DocumentSnapshot driverDoc = await FirebaseFirestore.instance
+            .collection('drivers')
+            .doc(user.uid)
+            .get();
+
+        if (driverDoc.exists) {
+          return driverDoc.get('driver_name');
+        }
+      } catch (e) {
+        debugPrint('Error fetching driver name: $e');
+      }
+    }
+    return null;
+  }
+
   // Check if the driver details are submitted
   Future<void> _checkDriverDetails() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -193,7 +230,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
               //     ],
               //   ),
               // ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 5),
               // const Align(
               //   alignment: Alignment.centerLeft, // Aligns the text to the left
               //   child: Text(
@@ -205,29 +242,99 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                 alignment: Alignment.centerLeft, // Aligns the text to the left
                 child: Text(
                   'Shuttle Overview',
-                  style: TextStyle(fontSize: 24),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
-              const SizedBox(height: 30),
-              ListView(
-                physics:
-                    const NeverScrollableScrollPhysics(), // Prevent nested scroll
-                shrinkWrap: true, // Adjust to fit the content
-                children: [
-                  _buildReservationCard(
-                      'Morning Journey', '', '20 seats reserved'),
-                ],
-              ),
               const SizedBox(height: 10),
+              // ListView(
+              //   physics:
+              //       const NeverScrollableScrollPhysics(), // Prevent nested scroll
+              //   shrinkWrap: true, // Adjust to fit the content
+              //   children: [
+              //     _buildReservationCard(
+              //       'Morning Journey',
+              //       '',
+              //       '20 seats reserved',
+              //     ),
+              //   ],
+              // ),
 
-              // const Text('Evening Journey', style: TextStyle(fontSize: 24)),
+              // const SizedBox(height: 10),
+
+              // // const Text('Evening Journey', style: TextStyle(fontSize: 24)),
+              // ListView(
+              //   physics:
+              //       const NeverScrollableScrollPhysics(), // Prevent nested scroll
+              //   shrinkWrap: true, // Adjust to fit the content
+              //   children: [
+              //     _buildReservationCard(
+              //         'Evening Journey', '', '20 seats reserved'),
+              //   ],
+              // ),
+
               ListView(
                 physics:
                     const NeverScrollableScrollPhysics(), // Prevent nested scroll
                 shrinkWrap: true, // Adjust to fit the content
                 children: [
-                  _buildReservationCard(
-                      'Evening Journey', '', '20 seats reserved'),
+                  FutureBuilder<String?>(
+                    future: _getDriverName(), // Fetch the driver name
+                    builder: (context, driverSnapshot) {
+                      if (driverSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (!driverSnapshot.hasData ||
+                          driverSnapshot.data == null) {
+                        return const Text('Driver not found');
+                      }
+
+                      return FutureBuilder<Map<String, dynamic>?>(
+                        future: _fetchDriverBookings(
+                            driverSnapshot.data!), // Fetch bookings
+                        builder: (context, bookingSnapshot) {
+                          if (bookingSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+
+                          if (bookingSnapshot.hasError) {
+                            return Text(
+                                'Error fetching bookings: ${bookingSnapshot.error}');
+                          }
+
+                          if (!bookingSnapshot.hasData ||
+                              bookingSnapshot.data == null) {
+                            return const Text('No bookings data available.');
+                          }
+
+                          // Extract morning and evening booking counts
+                          final bookings = bookingSnapshot.data!;
+                          final morningBookings =
+                              bookings['bookings_for_morning'] ?? 0;
+                          final eveningBookings =
+                              bookings['bookings_for_evening'] ?? 0;
+
+                          return Column(
+                            children: [
+                              _buildReservationCard(
+                                'Morning Journey',
+                                'Journey details for the morning',
+                                '$morningBookings seats reserved',
+                              ),
+                              _buildReservationCard(
+                                'Evening Journey',
+                                'Journey details for the evening',
+                                '$eveningBookings seats reserved',
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ],
               ),
               const SizedBox(height: 30),
@@ -236,7 +343,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                 alignment: Alignment.centerLeft, // Aligns the text to the left
                 child: Text(
                   'Shuttle Oprations',
-                  style: TextStyle(fontSize: 24),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               ),
               Padding(
@@ -288,6 +395,57 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                   ],
                 ),
               ),
+
+              // FutureBuilder<String?>(
+              //   future: _getDriverName(),
+              //   builder: (context, driverSnapshot) {
+              //     if (driverSnapshot.connectionState ==
+              //         ConnectionState.waiting) {
+              //       return const CircularProgressIndicator();
+              //     }
+
+              //     if (!driverSnapshot.hasData || driverSnapshot.data == null) {
+              //       return const Text('Driver not found');
+              //     }
+
+              //     return FutureBuilder<Map<String, dynamic>?>(
+              //       future: _fetchDriverBookings(driverSnapshot.data!),
+              //       builder: (context, bookingSnapshot) {
+              //         if (bookingSnapshot.connectionState ==
+              //             ConnectionState.waiting) {
+              //           return const CircularProgressIndicator();
+              //         }
+
+              //         if (bookingSnapshot.hasError) {
+              //           return Text(
+              //               'Error fetching bookings: ${bookingSnapshot.error}');
+              //         }
+
+              //         if (!bookingSnapshot.hasData ||
+              //             bookingSnapshot.data == null) {
+              //           return const Text('No bookings data available.');
+              //         }
+
+              //         final bookings = bookingSnapshot.data!;
+              //         final morningBookings =
+              //             bookings['bookings_for_morning'] ?? 0;
+              //         final eveningBookings =
+              //             bookings['bookings_for_evening'] ?? 0;
+
+              //         return Column(
+              //           children: [
+              //             Text('Driver: ${driverSnapshot.data}'),
+              //             Text('Morning Bookings: $morningBookings'),
+              //             Text('Evening Bookings: $eveningBookings'),
+              //           ],
+              //         );
+              //       },
+              //     );
+              //   },
+              // ),
+
+              // Fetch bookings and show number of bookings for morning and evening journeys
+
               // GestureDetector(
               //   onTap: () {
               //     // Navigator.push(
@@ -388,21 +546,53 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
   //   );
   // }
 
+  // Widget _buildReservationCard(String shuttleName, String time, String seats) {
+  //   return Card(
+  //     elevation: 5,
+  //     margin: const EdgeInsets.all(8),
+  //     child: Padding(
+  //       padding: const EdgeInsets.all(10),
+  //       child: Column(
+  //         children: [
+  //           Text(shuttleName,
+  //               style:
+  //                   const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+  //           Text('Pending Requests: $pendingRequests',
+  //               style: const TextStyle(fontSize: 16)),
+  //           Text(seats, style: const TextStyle(fontSize: 16)),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+
   Widget _buildReservationCard(String shuttleName, String time, String seats) {
-    return Card(
-      elevation: 5,
+    return Container(
+      width: 300, // Set a specific width
+      height: 100, // Set a specific height
       margin: const EdgeInsets.all(8),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Text(shuttleName,
+      child: Card(
+        elevation: 5,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                shuttleName,
                 style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            Text('Pending Requests: $pendingRequests',
-                style: const TextStyle(fontSize: 16)),
-            Text(seats, style: const TextStyle(fontSize: 16)),
-          ],
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Pending Requests: $pendingRequests',
+                style: const TextStyle(fontSize: 16),
+              ),
+              Text(
+                seats,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
         ),
       ),
     );
