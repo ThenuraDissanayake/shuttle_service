@@ -1,18 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shuttle_service/screens/userScreens/BookingDetailsPage.dart';
 
-class ShuttleDetailsPage extends StatelessWidget {
+class ShuttleDetailsPage extends StatefulWidget {
   final String shuttleId;
 
   const ShuttleDetailsPage({Key? key, required this.shuttleId})
       : super(key: key);
 
+  @override
+  _ShuttleDetailsPageState createState() => _ShuttleDetailsPageState();
+}
+
+class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
+  bool _isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfFavorite();
+  }
+
+  Future<void> _checkIfFavorite() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final favoriteDoc = await FirebaseFirestore.instance
+        .collection('user_favorites')
+        .doc(user.uid)
+        .collection('shuttles')
+        .doc(widget.shuttleId)
+        .get();
+
+    setState(() {
+      _isFavorite = favoriteDoc.exists;
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to add favorites')),
+      );
+      return;
+    }
+
+    final favoriteRef = FirebaseFirestore.instance
+        .collection('user_favorites')
+        .doc(user.uid)
+        .collection('shuttles')
+        .doc(widget.shuttleId);
+
+    try {
+      if (_isFavorite) {
+        // Remove from favorites
+        await favoriteRef.delete();
+        setState(() {
+          _isFavorite = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Removed from favorites')),
+        );
+      } else {
+        // Add to favorites
+        await favoriteRef.set({
+          'shuttleId': widget.shuttleId,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+        setState(() {
+          _isFavorite = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Added to favorites')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
   Future<Map<String, dynamic>?> _fetchShuttleDetails() async {
     try {
       final docSnapshot = await FirebaseFirestore.instance
-          .collection('drivers') // Ensure this matches your Firestore structure
-          .doc(shuttleId)
+          .collection('drivers')
+          .doc(widget.shuttleId)
           .get();
 
       if (docSnapshot.exists) {
@@ -27,8 +102,7 @@ class ShuttleDetailsPage extends StatelessWidget {
   Future<Map<String, dynamic>?> _fetchDriverBookings(String driverName) async {
     try {
       final docSnapshot = await FirebaseFirestore.instance
-          .collection(
-              'driver_bookings') // Assuming your collection is named "driver_bookings"
+          .collection('driver_bookings')
           .where('driver_name', isEqualTo: driverName)
           .limit(1)
           .get();
@@ -50,8 +124,11 @@ class ShuttleDetailsPage extends StatelessWidget {
         backgroundColor: Colors.green,
         actions: [
           IconButton(
-            icon: const Icon(Icons.favorite_border),
-            onPressed: () {},
+            icon: Icon(
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorite ? Colors.red : null,
+            ),
+            onPressed: _toggleFavorite,
           ),
         ],
       ),
@@ -156,7 +233,6 @@ class ShuttleDetailsPage extends StatelessWidget {
                             return Column(
                               children: [
                                 Text('Bookings: $morningBookings / $capacity'),
-                                // Text('Evening Bookings: $eveningBookings'),
                               ],
                             );
                           }
@@ -166,17 +242,16 @@ class ShuttleDetailsPage extends StatelessWidget {
                       // Morning Journey Reserve Now Button with Unique ID
                       ElevatedButton(
                         onPressed: () {
-                          final uniqueId = 'reserve_${shuttleId}_morning';
+                          final uniqueId =
+                              'reserve_${widget.shuttleId}_morning';
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => BookingDetailsPage(
                                 journeyType: 'Morning Journey',
                                 price: price,
-                                driverName:
-                                    driverName, // Passing driver details
-                                phone: shuttle['phone'] ??
-                                    'Unknown', // Passing phone
+                                driverName: driverName,
+                                phone: shuttle['phone'] ?? 'Unknown',
                               ),
                             ),
                           );
@@ -203,7 +278,7 @@ class ShuttleDetailsPage extends StatelessWidget {
                           'Evening Journey: ${_formatTimestamp(eveningJourneyTime, context)}',
                         ),
 
-                      // Fetch bookings and show number of bookings for morning and evening journeys
+                      // Fetch bookings and show number of bookings for evening journeys
                       FutureBuilder<Map<String, dynamic>?>(
                         future: _fetchDriverBookings(driverName),
                         builder: (context, bookingSnapshot) {
@@ -218,14 +293,11 @@ class ShuttleDetailsPage extends StatelessWidget {
                             return const Text('No bookings data available.');
                           } else {
                             final bookings = bookingSnapshot.data!;
-                            final morningBookings =
-                                bookings['bookings_for_morning'] ?? 0;
                             final eveningBookings =
                                 bookings['bookings_for_evening'] ?? 0;
 
                             return Column(
                               children: [
-                                // Text('Morning Bookings: $morningBookings'),
                                 Text(' Bookings: $eveningBookings / $capacity'),
                               ],
                             );
@@ -236,17 +308,16 @@ class ShuttleDetailsPage extends StatelessWidget {
                       // Evening Journey Reserve Now Button with Unique ID
                       ElevatedButton(
                         onPressed: () {
-                          final uniqueId = 'reserve_${shuttleId}_evening';
+                          final uniqueId =
+                              'reserve_${widget.shuttleId}_evening';
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => BookingDetailsPage(
                                 journeyType: 'Evening Journey',
                                 price: price,
-                                driverName:
-                                    driverName, // Passing driver details
-                                phone: shuttle['phone'] ??
-                                    'Unknown', // Passing phone
+                                driverName: driverName,
+                                phone: shuttle['phone'] ?? 'Unknown',
                               ),
                             ),
                           );

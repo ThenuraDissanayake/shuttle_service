@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shuttle_service/screens/userScreens/favouritepages.dart';
 import 'seatreservation.dart';
 import 'ShuttleTracking.dart';
 import 'notification.dart';
@@ -206,6 +207,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   title: 'My Shuttle List',
                   onTap: () {
                     // Navigate to my shuttle list page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FavoritesPage(),
+                      ),
+                    );
                   },
                 ),
                 _DashCard(
