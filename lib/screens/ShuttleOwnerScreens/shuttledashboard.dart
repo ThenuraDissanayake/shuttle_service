@@ -27,6 +27,44 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
     _checkDriverDetails(); // Check if driver details are submitted
   }
 
+  Future<Map<String, int>> _fetchPendingRequests() async {
+    try {
+      final driverName = await _getDriverName(); // Fetch the driver's name
+
+      if (driverName == null) {
+        return {
+          'morning': 0,
+          'evening': 0
+        }; // No driver found, return 0 for both
+      }
+
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection(
+              'bookings') // Assuming your collection is named "bookings"
+          .where('driverName', isEqualTo: driverName)
+          .where('status', isEqualTo: 'Pending')
+          .get();
+
+      int morningCount = 0;
+      int eveningCount = 0;
+
+      // Loop through the documents and count morning and evening bookings
+      querySnapshot.docs.forEach((doc) {
+        final journeyType = doc['journeyType'];
+        if (journeyType == 'Morning Journey') {
+          morningCount++;
+        } else if (journeyType == 'Evening Journey') {
+          eveningCount++;
+        }
+      });
+
+      return {'morning': morningCount, 'evening': eveningCount};
+    } catch (e) {
+      print("Error fetching pending requests: $e");
+      return {'morning': 0, 'evening': 0};
+    }
+  }
+
   // Fetch the user's name from Firestore
   Future<void> _fetchUserName() async {
     try {
@@ -272,6 +310,72 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
               //   ],
               // ),
 
+              // ListView(
+              //   physics:
+              //       const NeverScrollableScrollPhysics(), // Prevent nested scroll
+              //   shrinkWrap: true, // Adjust to fit the content
+              //   children: [
+              //     FutureBuilder<String?>(
+              //       future: _getDriverName(), // Fetch the driver name
+              //       builder: (context, driverSnapshot) {
+              //         if (driverSnapshot.connectionState ==
+              //             ConnectionState.waiting) {
+              //           return const Center(child: CircularProgressIndicator());
+              //         }
+
+              //         if (!driverSnapshot.hasData ||
+              //             driverSnapshot.data == null) {
+              //           return const Text('Driver not found');
+              //         }
+
+              //         return FutureBuilder<Map<String, dynamic>?>(
+              //           future: _fetchDriverBookings(
+              //               driverSnapshot.data!), // Fetch bookings
+              //           builder: (context, bookingSnapshot) {
+              //             if (bookingSnapshot.connectionState ==
+              //                 ConnectionState.waiting) {
+              //               return const Center(
+              //                   child: CircularProgressIndicator());
+              //             }
+
+              //             if (bookingSnapshot.hasError) {
+              //               return Text(
+              //                   'Error fetching bookings: ${bookingSnapshot.error}');
+              //             }
+
+              //             if (!bookingSnapshot.hasData ||
+              //                 bookingSnapshot.data == null) {
+              //               return const Text('No bookings data available.');
+              //             }
+
+              //             // Extract morning and evening booking counts
+              //             final bookings = bookingSnapshot.data!;
+              //             final morningBookings =
+              //                 bookings['bookings_for_morning'] ?? 0;
+              //             final eveningBookings =
+              //                 bookings['bookings_for_evening'] ?? 0;
+
+              //             return Column(
+              //               children: [
+              //                 _buildReservationCard(
+              //                   'Morning Journey',
+              //                   'Journey details for the morning',
+              //                   '$morningBookings seats reserved',
+              //                 ),
+              //                 _buildReservationCard(
+              //                   'Evening Journey',
+              //                   'Journey details for the evening',
+              //                   '$eveningBookings seats reserved',
+              //                 ),
+              //               ],
+              //             );
+              //           },
+              //         );
+              //       },
+              //     ),
+              //   ],
+              // ),
+
               ListView(
                 physics:
                     const NeverScrollableScrollPhysics(), // Prevent nested scroll
@@ -319,15 +423,68 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
 
                           return Column(
                             children: [
-                              _buildReservationCard(
-                                'Morning Journey',
-                                'Journey details for the morning',
-                                '$morningBookings seats reserved',
+                              // Morning Journey Card with Pending Requests
+                              FutureBuilder<Map<String, int>>(
+                                future:
+                                    _fetchPendingRequests(), // Fetch the pending requests
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
+
+                                  if (snapshot.hasError) {
+                                    return Text(
+                                        'Error fetching pending requests: ${snapshot.error}');
+                                  }
+
+                                  if (!snapshot.hasData) {
+                                    return const Text(
+                                        'No pending requests data available.');
+                                  }
+
+                                  final morningRequests =
+                                      snapshot.data!['morning'] ?? 0;
+
+                                  return _buildReservationCard(
+                                    'Morning Journey',
+                                    '$morningBookings seats reserved',
+                                    '$morningRequests', // Pass pending requests here
+                                  );
+                                },
                               ),
-                              _buildReservationCard(
-                                'Evening Journey',
-                                'Journey details for the evening',
-                                '$eveningBookings seats reserved',
+
+                              // Evening Journey Card with Pending Requests
+                              FutureBuilder<Map<String, int>>(
+                                future:
+                                    _fetchPendingRequests(), // Fetch the pending requests
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  }
+
+                                  if (snapshot.hasError) {
+                                    return Text(
+                                        'Error fetching pending requests: ${snapshot.error}');
+                                  }
+
+                                  if (!snapshot.hasData) {
+                                    return const Text(
+                                        'No pending requests data available.');
+                                  }
+
+                                  final eveningRequests =
+                                      snapshot.data!['evening'] ?? 0;
+
+                                  return _buildReservationCard(
+                                    'Evening Journey',
+                                    '$eveningBookings seats reserved',
+                                    '$eveningRequests', // Pass pending requests here
+                                  );
+                                },
                               ),
                             ],
                           );
@@ -337,6 +494,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 30),
 
               const Align(
@@ -566,10 +724,11 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
   //   );
   // }
 
-  Widget _buildReservationCard(String shuttleName, String time, String seats) {
+  Widget _buildReservationCard(
+      String shuttleName, String seats, String pendingRequests) {
     return Container(
       width: 300, // Set a specific width
-      height: 100, // Set a specific height
+      height: 110, // Adjusted height to fit both lines of text
       margin: const EdgeInsets.all(8),
       child: Card(
         elevation: 5,
@@ -583,12 +742,16 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              Text(
-                'Pending Requests: $pendingRequests',
-                style: const TextStyle(fontSize: 16),
-              ),
+              const SizedBox(
+                  height: 1), // Adds space between shuttle name and details
               Text(
                 seats,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(
+                  height: 1), // Adds space between seats and pending requests
+              Text(
+                'Pending Requests: $pendingRequests',
                 style: const TextStyle(fontSize: 16),
               ),
             ],
