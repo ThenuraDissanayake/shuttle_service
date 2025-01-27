@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shuttle_service/screens/admin/review_complaints.dart';
 import 'reports_and_analytics.dart';
-import 'shuttle_approval.dart';
+import 'shuttle_management.dart';
 import 'sys_configuration.dart';
 import 'user_management.dart';
 
@@ -13,7 +14,6 @@ class AdminDashboardPage extends StatefulWidget {
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
   int _selectedIndex = 0;
-
   final List<Widget> _pages = [
     AdminDashboardContent(),
     ShuttleApprovalPage(),
@@ -32,24 +32,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.blue,
         title: const Text('Admin'),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.account_circle),
-        //     onPressed: () {
-        //       // Navigate to profile page or admin settings
-        //     },
-        //   ),
-        // ],
       ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.blue, // Matches the app theme
+        backgroundColor: Colors.blue,
         selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.grey[300], // Softer unselected color
+        unselectedItemColor: Colors.grey[300],
         currentIndex: _selectedIndex,
-        type: BottomNavigationBarType.fixed, // Keeps labels visible
+        type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(
@@ -87,13 +80,55 @@ class AdminDashboardContent extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          const Text('System Overview', style: TextStyle(fontSize: 24)),
+          const Text('System Overview',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
           Expanded(
             child: ListView(
               children: [
                 _buildDashboardCard('Total Shuttles', '15'),
                 _buildDashboardCard('Active Users', '250'),
                 _buildDashboardCard('Pending Approvals', '3'),
+                const SizedBox(height: 20),
+                _buildNavigationButton(
+                  context,
+                  'Manage Shuttles',
+                  Icons.directions_bus,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ReviewComplaintsPage()),
+                  ),
+                ),
+                _buildNavigationButton(
+                  context,
+                  'User Management',
+                  Icons.people,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => UserManagementPage()),
+                  ),
+                ),
+                _buildNavigationButton(
+                  context,
+                  'Reports & Analytics',
+                  Icons.analytics,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ReportsAnalyticsPage()),
+                  ),
+                ),
+                _buildNavigationButton(
+                  context,
+                  'System Configuration',
+                  Icons.settings,
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SystemConfigPage()),
+                  ),
+                ),
               ],
             ),
           ),
@@ -119,6 +154,43 @@ class AdminDashboardContent extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavigationButton(
+    BuildContext context,
+    String title,
+    IconData icon,
+    VoidCallback onPressed,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          padding: const EdgeInsets.all(20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 15),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Spacer(),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white),
           ],
         ),
       ),

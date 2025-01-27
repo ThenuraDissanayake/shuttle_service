@@ -8,7 +8,7 @@ class ShuttleApprovalPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text('Shuttle Approval'),
+        title: const Text('Driver Management'),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16.0),

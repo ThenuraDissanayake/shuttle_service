@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shuttle_service/screens/admin/admin_dashboard.dart';
 import 'userScreens/dashboard.dart'; // Passenger dashboard
 import 'ShuttleOwnerScreens/shuttledashboard.dart'; // Shuttle owner dashboard
 
@@ -59,6 +60,19 @@ class _LoginScreenState extends State<LoginScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const OwnerDashboardPage()),
+          );
+          return;
+        }
+
+        final adminsDoc = await FirebaseFirestore.instance
+            .collection('admins')
+            .doc(user.uid)
+            .get();
+
+        if (adminsDoc.exists) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const AdminDashboardPage()),
           );
           return;
         }

@@ -449,6 +449,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
 
                                   return _buildReservationCard(
                                     'Morning Journey',
+
                                     '$morningBookings seats reserved',
                                     '$morningRequests', // Pass pending requests here
                                   );
@@ -743,13 +744,13 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(
-                  height: 1), // Adds space between shuttle name and details
+                  height: 5), // Adds space between shuttle name and details
               Text(
                 seats,
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(
-                  height: 1), // Adds space between seats and pending requests
+                  height: 5), // Adds space between seats and pending requests
               Text(
                 'Pending Requests: $pendingRequests',
                 style: const TextStyle(fontSize: 16),

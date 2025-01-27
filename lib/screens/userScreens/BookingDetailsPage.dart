@@ -124,7 +124,8 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
           'status': 'Pending',
           'passengerName': passengerName,
           'driverName': widget.driverName,
-          'phone': widget.phone,
+          // 'phone': widget.phone,
+          'my_booking': 'pending', // Added this field
         });
 
         ScaffoldMessenger.of(context).showSnackBar(

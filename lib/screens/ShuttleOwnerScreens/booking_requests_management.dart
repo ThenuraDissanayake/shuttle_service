@@ -87,13 +87,21 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
     }
   }
 
-  // Handle the booking request (Accept or Reject)
+// Handle the booking request (Accept or Reject)
   Future<void> _handleBooking(String bookingId, String status) async {
     try {
+      // If the status is "Accepted", also update the 'my_booking' field to 'ongoing'
+      Map<String, dynamic> updateData = {'status': status};
+
+      if (status == 'Accepted') {
+        updateData['my_booking'] = 'ongoing'; // Set 'my_booking' to 'ongoing'
+      }
+
+      // Update the booking document
       await FirebaseFirestore.instance
           .collection('bookings')
           .doc(bookingId)
-          .update({'status': status});
+          .update(updateData);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Booking $status successfully!')),
