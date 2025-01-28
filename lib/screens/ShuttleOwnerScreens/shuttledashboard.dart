@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/view_special_requests.dart';
 import 'shuttleManagement.dart';
-import 'reservations_overview_page.dart';
 import 'booking_requests_management.dart';
 import 'driver_pro.dart';
 import 'Driver_userProfile.dart';
@@ -538,15 +538,15 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                       },
                     ),
                     _DashCard(
-                      icon: Icons.event_seat,
-                      title: 'Reservation Overview',
+                      icon: Icons.event,
+                      title: 'Requests for Special Shuttles',
                       onTap: () {
                         // Navigate to my shuttle list page
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                ReservationsOverviewPage(), // Replace with your destination page
+                                const SpecialRequestsPage(), // Replace with your destination page
                           ),
                         );
                       },

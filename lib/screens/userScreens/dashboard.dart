@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shuttle_service/screens/userScreens/complaints.dart';
 import 'package:shuttle_service/screens/userScreens/favouritepages.dart';
-import 'package:shuttle_service/screens/userScreens/special_requests.dart';
 import 'package:shuttle_service/screens/userScreens/my_bookings.dart';
+import 'package:shuttle_service/screens/userScreens/special_requsets_main.dart';
 import 'seatreservation.dart';
 import 'userProfile.dart';
 
@@ -215,7 +215,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const SpecialShuttleRequestPage(),
+                        builder: (context) => const SpecialRequsetsMain(),
                       ),
                     );
                   },
