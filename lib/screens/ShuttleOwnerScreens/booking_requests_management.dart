@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 class BookingRequestsPage extends StatefulWidget {
   const BookingRequestsPage({Key? key}) : super(key: key);
@@ -97,6 +98,10 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
         updateData['my_booking'] = 'ongoing'; // Set 'my_booking' to 'ongoing'
       }
 
+      if (status == 'Rejected') {
+        updateData['my_booking'] = 'rejected'; // Set 'my_booking' to 'rejected'
+      }
+
       // Update the booking document
       await FirebaseFirestore.instance
           .collection('bookings')
@@ -157,6 +162,9 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
                             // Text('Price: LKR ${request['price']}'),
                             Text('Payment Method: ${request['paymentMethod']}'),
                             // Text('Phone: ${request['phone']}'),
+                            Text(
+                              "Booking Date / Time: ${request['bookingDateTime'] != null ? DateFormat('dd MMM yyyy, hh:mm a').format((request['bookingDateTime'] as Timestamp).toDate()) : 'N/A'}",
+                            ),
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,

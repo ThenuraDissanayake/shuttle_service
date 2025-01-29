@@ -18,8 +18,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
   final TextEditingController _routeController = TextEditingController();
   final TextEditingController _mainStopController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _priceController =
-      TextEditingController(); // New price controller
+  final TextEditingController _priceController = TextEditingController();
 
   bool _isEditing = false;
   bool _isSubmitted = false;
@@ -66,8 +65,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
           _capacityController.text =
               _driverData?['shuttle']['capacity']?.toString() ?? '';
           _priceController.text =
-              _driverData?['shuttle']['full_journey_price']?.toString() ??
-                  ''; // Load price
+              _driverData?['shuttle']['full_journey_price']?.toString() ?? '';
 
           _routeController.text = _driverData?['shuttle']['route'] ?? '';
 
@@ -114,10 +112,10 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
               'capacity': int.parse(_capacityController.text.trim()),
               'route': _routeController.text.trim(),
               'main_stops': _mainStops,
-              'full_journey_price':
-                  double.parse(_priceController.text.trim()), // Save price
-              'status': 'Active',
+              'full_journey_price': double.parse(_priceController.text.trim()),
+              'status': 'Inactive',
             },
+            'admin_approval': 'pending', // Added admin approval field
           };
 
           await _firestore.collection('drivers').doc(user.uid).set(driverData);
@@ -129,7 +127,10 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Driver details saved successfully!')),
+            const SnackBar(
+              content: Text('Driver details submitted for admin approval!'),
+              backgroundColor: Colors.orange,
+            ),
           );
         }
       } catch (e) {
@@ -153,10 +154,10 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
             'capacity': int.parse(_capacityController.text.trim()),
             'route': _routeController.text.trim(),
             'main_stops': _mainStops,
-            'full_journey_price':
-                double.parse(_priceController.text.trim()), // Update price
-            'status': 'Active',
+            'full_journey_price': double.parse(_priceController.text.trim()),
+            'status': 'Inactive',
           },
+          'admin_approval': 'pending', // Added admin approval field
         };
 
         await _firestore
@@ -170,7 +171,10 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Driver details updated successfully!')),
+          const SnackBar(
+            content: Text('Changes submitted for admin approval!'),
+            backgroundColor: Colors.orange,
+          ),
         );
       }
     } catch (e) {
@@ -196,43 +200,53 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
                   children: [
                     Text(
                       'Driver Name: $_driverName',
-                      style: const TextStyle(fontSize: 22),
+                      style: const TextStyle(fontSize: 16),
                     ),
                     Text(
                       'Shuttle Number: $_shuttleNo',
-                      style: const TextStyle(fontSize: 22),
+                      style: const TextStyle(fontSize: 16),
                     ),
                     Text(
                       'Shuttle Name: ${_driverData?['shuttle']['shuttle_name'] ?? 'N/A'}',
-                      style: const TextStyle(fontSize: 22),
+                      style: const TextStyle(fontSize: 16),
                     ),
                     Text(
                       'License Plate: ${_driverData?['shuttle']['license_plate'] ?? 'N/A'}',
-                      style: const TextStyle(fontSize: 22),
+                      style: const TextStyle(fontSize: 16),
                     ),
                     Text(
                       'Shuttle Type: ${_driverData?['shuttle']['shuttle_type'] ?? 'N/A'}',
-                      style: const TextStyle(fontSize: 22),
+                      style: const TextStyle(fontSize: 16),
                     ),
                     Text(
                       'Capacity: ${_driverData?['shuttle']['capacity'] ?? 'N/A'}',
-                      style: const TextStyle(fontSize: 22),
+                      style: const TextStyle(fontSize: 16),
                     ),
                     Text(
                       'Full Journey Price: Rs.${_driverData?['shuttle']['full_journey_price']?.toString() ?? 'N/A'}',
-                      style: const TextStyle(fontSize: 22),
+                      style: const TextStyle(fontSize: 16),
                     ),
                     Text(
                       'Route: ${_driverData?['shuttle']['route'] ?? 'N/A'}',
-                      style: const TextStyle(fontSize: 22),
+                      style: const TextStyle(fontSize: 16),
                     ),
                     Text(
                       'Main Stops: ${_mainStops.isNotEmpty ? _mainStops.join(", ") : 'N/A'}',
-                      style: const TextStyle(fontSize: 22),
+                      style: const TextStyle(fontSize: 16),
                     ),
                     Text(
                       'Phone: ${_driverData?['phone'] ?? 'N/A'}',
-                      style: const TextStyle(fontSize: 22),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Admin Approval Status: ${_driverData?['admin_approval']?.toUpperCase() ?? 'N/A'}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: _driverData?['admin_approval'] == 'pending'
+                            ? Colors.orange
+                            : Colors.black,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
@@ -395,7 +409,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
     _routeController.dispose();
     _mainStopController.dispose();
     _phoneController.dispose();
-    _priceController.dispose(); // Dispose price controller
+    _priceController.dispose();
     super.dispose();
   }
 }

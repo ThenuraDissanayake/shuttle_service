@@ -48,7 +48,10 @@ class _AdminComplaintDetailsPageState extends State<AdminComplaintDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Complaint Details')),
+      appBar: AppBar(
+        title: const Text('Complaint Details'),
+        backgroundColor: Colors.blue[800],
+      ),
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance
             .collection('complaints')

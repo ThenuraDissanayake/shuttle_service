@@ -170,20 +170,20 @@ class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       _buildSectionTitle('Driver Details'),
-                      Text('Driver Name: $driverName'),
+                      Text('👤 Driver Name: $driverName'),
                       const SizedBox(height: 8),
-                      Text('Phone: ${shuttle['phone'] ?? 'Unknown'}'),
+                      Text('📞 Phone: ${shuttle['phone'] ?? 'Unknown'}'),
                       const SizedBox(height: 16),
                       _buildSectionTitle('Shuttle Details'),
-                      Text('Shuttle Type: $shuttleType'),
-                      Text('License Plate: $licensePlate'),
-                      Text('Capacity: $capacity'),
-                      Text('Route: $route'),
+                      Text('🚌 Shuttle Type: $shuttleType'),
+                      Text('🔖 License Plate: $licensePlate'),
+                      Text('🪑 Capacity: $capacity'),
+                      Text('🚦 Route: $route'),
                       const SizedBox(height: 16),
-                      _buildSectionTitle('Price'),
+                      _buildSectionTitle('💲 Price'),
                       Text('LKR: $price'),
                       const SizedBox(height: 16),
-                      _buildSectionTitle('Main Stops'),
+                      _buildSectionTitle('📍 Main Stops'),
                       mainStops.isEmpty
                           ? const Text('No stops available.')
                           : Column(
@@ -207,7 +207,7 @@ class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
                       const SizedBox(height: 24),
                       if (morningJourneyTime != null)
                         Text(
-                          'Morning Journey: ${_formatTimestamp(morningJourneyTime, context)}',
+                          '🕗 Morning Journey: ${_formatTimestamp(morningJourneyTime, context)}',
                         ),
 
                       // Fetch bookings and show number of bookings for morning and evening journeys
@@ -275,7 +275,7 @@ class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
 
                       if (eveningJourneyTime != null)
                         Text(
-                          'Evening Journey: ${_formatTimestamp(eveningJourneyTime, context)}',
+                          '🕗 Evening Journey: ${_formatTimestamp(eveningJourneyTime, context)}',
                         ),
 
                       // Fetch bookings and show number of bookings for evening journeys

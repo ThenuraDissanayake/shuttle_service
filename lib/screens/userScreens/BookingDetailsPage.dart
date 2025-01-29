@@ -117,6 +117,8 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
               : bookingsForEvening,
         });
 
+        // In the _requestBooking method, update only the FirebaseFirestore.instance.collection('bookings').add({ ... }) part:
+
         await FirebaseFirestore.instance.collection('bookings').add({
           'journeyType': widget.journeyType,
           'price': widget.price,
@@ -125,7 +127,11 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
           'passengerName': passengerName,
           'driverName': widget.driverName,
           // 'phone': widget.phone,
-          'my_booking': 'pending', // Added this field
+          'my_booking': 'pending',
+          'bookingDateTime':
+              FieldValue.serverTimestamp(), // Add server timestamp
+          // 'localBookingDateTime':
+          //     DateTime.now().toIso8601String(), // Add local device timestamp
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -161,7 +167,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'Passenger Name: $passengerName',
+                        '👤 Passenger Name: $passengerName',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -170,7 +176,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Journey: ${widget.journeyType}',
+                        '🚍 Journey: ${widget.journeyType}',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -179,19 +185,19 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Price: LKR ${widget.price}',
+                        '💲 Price: LKR ${widget.price}',
                         style: const TextStyle(fontSize: 18),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Driver Name: ${widget.driverName}',
+                        '👨‍✈️ Driver Name: ${widget.driverName}',
                         style: const TextStyle(fontSize: 18),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Phone: ${widget.phone}',
+                        '📞 Phone: ${widget.phone}',
                         style: const TextStyle(fontSize: 18),
                         textAlign: TextAlign.center,
                       ),
@@ -209,14 +215,36 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                             _selectedPaymentMethod = newValue!;
                           });
                         },
-                        items: ['Card Payment', 'Bank Transfer', 'Cash']
+                        items: ['Card Payment', 'Cash']
                             .map<DropdownMenuItem<String>>(
-                              (String value) => DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
+                          (String value) {
+                            String icon;
+
+                            // Assign appropriate emojis based on the value
+                            switch (value) {
+                              case 'Card Payment':
+                                icon = '💳'; // Card payment emoji
+                                break;
+                              case 'Cash':
+                                icon = '💵'; // Cash emoji
+                                break;
+                              default:
+                                icon = '❓'; // Default emoji (if needed)
+                            }
+
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Row(
+                                children: [
+                                  Text(icon), // Display emoji
+                                  SizedBox(
+                                      width: 10), // Space between icon and text
+                                  Text(value),
+                                ],
                               ),
-                            )
-                            .toList(),
+                            );
+                          },
+                        ).toList(),
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(

@@ -35,6 +35,7 @@ class _FindActiveShuttlesPageState extends State<FindActiveShuttlesPage> {
       final querySnapshot = await _firestore
           .collection('drivers') // Replace with your collection name
           .where('shuttle.status', isEqualTo: 'Active')
+          .where('admin_approval', isEqualTo: 'approved')
           .get();
 
       // Convert querySnapshot to list of shuttles
@@ -128,13 +129,13 @@ class _FindActiveShuttlesPageState extends State<FindActiveShuttlesPage> {
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Driver: ${shuttle['driver_name']}'),
+                                Text('👤 Driver: ${shuttle['driver_name']}'),
                                 Text(
-                                    'License Plate: ${shuttle['license_plate']}'),
+                                    '🔖 License Plate: ${shuttle['license_plate']}'),
                                 Text(
-                                    'Morning Journey: ${_formatTimestamp(morningJourneyTime, context)}'),
+                                    '🕗 Morning Journey: ${_formatTimestamp(morningJourneyTime, context)}'),
                                 Text(
-                                    'Evening Journey: ${_formatTimestamp(eveningJourneyTime, context)}'),
+                                    '🕗 Evening Journey: ${_formatTimestamp(eveningJourneyTime, context)}'),
                               ],
                             ),
                             trailing: IconButton(

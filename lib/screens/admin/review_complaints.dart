@@ -10,7 +10,7 @@ class ReviewComplaintsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Review Complaints'),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.blue[800],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('complaints').snapshots(),

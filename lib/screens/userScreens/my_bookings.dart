@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class MyBookingsPage extends StatefulWidget {
@@ -14,20 +15,22 @@ class _MyBookingsPageState extends State<MyBookingsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool isLoading = true;
+  List<Map<String, dynamic>> pendingBookings = [];
   List<Map<String, dynamic>> ongoingBookings = [];
   List<Map<String, dynamic>> pastBookings = [];
+  List<Map<String, dynamic>> rejectedBookings = [];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _fetchBookings();
   }
 
   Future<void> _fetchBookings() async {
     try {
+      // Get the current user
       User? user = FirebaseAuth.instance.currentUser;
-
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('User not authenticated')),
@@ -35,14 +38,51 @@ class _MyBookingsPageState extends State<MyBookingsPage>
         return;
       }
 
-      // Fetch bookings
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection('bookings')
-          .where('passengerName',
-              isEqualTo: user.displayName) // Match passenger
+      // First, get the user's name from the passengers collection
+      DocumentSnapshot passengerDoc = await FirebaseFirestore.instance
+          .collection('passengers')
+          .doc(user.uid) // Using the user's UID to fetch their document
           .get();
 
+      if (!passengerDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Passenger profile not found')),
+        );
+        return;
+      }
+
+      // Get the name from the passenger document
+      String? passengerName = passengerDoc.get('name') as String?;
+      if (passengerName == null || passengerName.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Passenger name not found')),
+        );
+        return;
+      }
+
+      print('Fetched Passenger Name: $passengerName'); // Debugging line
+
+      // Query the 'bookings' collection where 'passengerName' equals the passenger's name
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('bookings')
+          .where('passengerName', isEqualTo: passengerName)
+          .get();
+
+      if (snapshot.docs.isEmpty) {
+        print('No bookings found for this user.');
+      } else {
+        print('Fetched ${snapshot.docs.length} bookings.');
+      }
+
+      // Processing the fetched bookings
       setState(() {
+        pendingBookings = snapshot.docs
+            .where((doc) => doc['my_booking'] == 'pending') // Filter pending
+            .map((doc) => {
+                  'id': doc.id,
+                  ...doc.data() as Map<String, dynamic>,
+                })
+            .toList();
         ongoingBookings = snapshot.docs
             .where((doc) => doc['my_booking'] == 'ongoing') // Filter ongoing
             .map((doc) => {
@@ -50,7 +90,6 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                   ...doc.data() as Map<String, dynamic>,
                 })
             .toList();
-
         pastBookings = snapshot.docs
             .where((doc) => doc['my_booking'] == 'past') // Filter past
             .map((doc) => {
@@ -58,7 +97,13 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                   ...doc.data() as Map<String, dynamic>,
                 })
             .toList();
-
+        rejectedBookings = snapshot.docs
+            .where((doc) => doc['my_booking'] == 'rejected') // Filter rejected
+            .map((doc) => {
+                  'id': doc.id,
+                  ...doc.data() as Map<String, dynamic>,
+                })
+            .toList();
         isLoading = false;
       });
     } catch (e) {
@@ -115,8 +160,10 @@ class _MyBookingsPageState extends State<MyBookingsPage>
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
+            Tab(text: 'pending'),
             Tab(text: 'Ongoing'),
             Tab(text: 'Past'),
+            Tab(text: 'Rejected'),
           ],
         ),
       ),
@@ -125,6 +172,38 @@ class _MyBookingsPageState extends State<MyBookingsPage>
           : TabBarView(
               controller: _tabController,
               children: [
+                ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: pendingBookings.length,
+                  itemBuilder: (context, index) {
+                    final booking = pendingBookings[index];
+                    return Card(
+                      elevation: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Passenger: ${booking['passengerName'] ?? 'N/A'}',
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                                'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
+                            Text(
+                                'Payment Method: ${booking['paymentMethod'] ?? 'N/A'}'),
+                            Text(
+                                'Booking Date / Time: ${booking['bookingDateTime'] != null ? DateFormat('dd MMM yyyy, hh:mm a').format((booking['bookingDateTime'] as Timestamp).toDate()) : 'N/A'}'),
+                            Text('Price: LKR ${booking['price'] ?? '0.0'}'),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
                 // Ongoing Bookings Tab
                 ListView.builder(
                   padding: const EdgeInsets.all(16),
@@ -148,6 +227,8 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                                 'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
                             Text(
                                 'Payment Method: ${booking['paymentMethod'] ?? 'N/A'}'),
+                            Text(
+                                'Booking Date / Time: ${booking['bookingDateTime'] != null ? DateFormat('dd MMM yyyy, hh:mm a').format((booking['bookingDateTime'] as Timestamp).toDate()) : 'N/A'}'),
                             Text('Price: LKR ${booking['price'] ?? '0.0'}'),
                             const SizedBox(height: 12),
                             Center(
@@ -200,6 +281,41 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                                 'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
                             Text(
                                 'Payment Method: ${booking['paymentMethod'] ?? 'N/A'}'),
+                            Text(
+                                'Booking Date / Time: ${booking['bookingDateTime'] != null ? DateFormat('dd MMM yyyy, hh:mm a').format((booking['bookingDateTime'] as Timestamp).toDate()) : 'N/A'}'),
+                            Text('Price: LKR ${booking['price'] ?? '0.0'}'),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                // Rejected Bookings Tab
+                ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: rejectedBookings.length,
+                  itemBuilder: (context, index) {
+                    final booking = rejectedBookings[index];
+                    return Card(
+                      elevation: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Passenger: ${booking['passengerName'] ?? 'N/A'}',
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                                'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
+                            Text(
+                                'Payment Method: ${booking['paymentMethod'] ?? 'N/A'}'),
+                            Text(
+                                'Booking Date / Time: ${booking['bookingDateTime'] != null ? DateFormat('dd MMM yyyy, hh:mm a').format((booking['bookingDateTime'] as Timestamp).toDate()) : 'N/A'}'),
                             Text('Price: LKR ${booking['price'] ?? '0.0'}'),
                           ],
                         ),
