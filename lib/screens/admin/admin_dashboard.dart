@@ -1,125 +1,203 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'reports_and_analytics.dart';
-import 'shuttle_approval.dart';
-import 'sys_configuration.dart';
-import 'user_management.dart';
+import 'package:shuttle_service/screens/admin/driver_management.dart';
+import 'package:shuttle_service/screens/admin/review_complaints.dart';
 
-class AdminDashboardPage extends StatefulWidget {
-  const AdminDashboardPage({super.key});
+class AdminDashboardScreen extends StatefulWidget {
+  const AdminDashboardScreen({super.key});
 
   @override
-  _AdminDashboardPageState createState() => _AdminDashboardPageState();
+  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
 }
 
-class _AdminDashboardPageState extends State<AdminDashboardPage> {
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _selectedIndex = 0;
+  int totalPassengers = 0;
+  int totalDrivers = 0;
+  int pendingApprovals = 0;
+  int totalComplaints = 0;
 
-  final List<Widget> _pages = [
-    AdminDashboardContent(),
-    ShuttleApprovalPage(),
-    UserManagementPage(),
-    ReportsAnalyticsPage(),
-    SystemConfigPage(),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
+  @override
+  void initState() {
+    super.initState();
+    _fetchData(); // Initial data fetch
+    Timer.periodic(const Duration(seconds: 5), (timer) {
+      _fetchData(); // Auto-refresh every 5 seconds
     });
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      // Fetch total number of drivers
+      QuerySnapshot driverSnapshot =
+          await FirebaseFirestore.instance.collection('drivers').get();
+
+      // Fetch pending driver approvals
+      QuerySnapshot pendingSnapshot = await FirebaseFirestore.instance
+          .collection('drivers')
+          .where('admin_approval', isEqualTo: 'pending')
+          .get();
+
+      // Fetch total complaints (assuming "complaints" collection exists)
+      QuerySnapshot complaintsSnapshot = await FirebaseFirestore.instance
+          .collection('complaints')
+          .where('status', isEqualTo: 'Pending') // Filter by status();
+          .get();
+
+      QuerySnapshot passengerSnapshot =
+          await FirebaseFirestore.instance.collection('passengers').get();
+
+      setState(() {
+        totalDrivers = driverSnapshot.size;
+        pendingApprovals = pendingSnapshot.size;
+        totalComplaints = complaintsSnapshot.size;
+        totalPassengers =
+            passengerSnapshot.size; // Placeholder, no Firestore fetch yet
+      });
+    } catch (e) {
+      print("Error fetching data: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue,
-        title: const Text('Admin'),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.account_circle),
-        //     onPressed: () {
-        //       // Navigate to profile page or admin settings
-        //     },
-        //   ),
-        // ],
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.blue[800],
+        title: const Text(
+          'Admin Dashboard',
+          style: TextStyle(color: Colors.white, fontSize: 18),
+        ),
       ),
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.blue, // Matches the app theme
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.grey[300], // Softer unselected color
-        currentIndex: _selectedIndex,
-        type: BottomNavigationBarType.fixed, // Keeps labels visible
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.approval),
-            label: 'Approvals',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Users',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Reports',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class AdminDashboardContent extends StatelessWidget {
-  const AdminDashboardContent({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          const Text('System Overview', style: TextStyle(fontSize: 24)),
-          Expanded(
-            child: ListView(
-              children: [
-                _buildDashboardCard('Total Shuttles', '15'),
-                _buildDashboardCard('Active Users', '250'),
-                _buildDashboardCard('Pending Approvals', '3'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDashboardCard(String title, String count) {
-    return Card(
-      elevation: 5,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: const TextStyle(fontSize: 18)),
-            Text(
-              count,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _fetchData(); // Manual refresh on pull-down
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+          child: Column(
+            children: [
+              // Overview Cards
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _overviewCard('Total Drivers', Icons.directions_bus,
+                      Colors.red, totalDrivers),
+                  _overviewCard('Pending Approvals', Icons.pending,
+                      Colors.orange, pendingApprovals),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _overviewCard('Total Complaints', Icons.report, Colors.purple,
+                      totalComplaints),
+                  _overviewCard('Total Passengers', Icons.people, Colors.blue,
+                      totalPassengers), // Placeholder, no Firestore fetch yet
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Action Buttons
+              _dashboardButton(context, Icons.manage_accounts, 'Manage Drivers',
+                  () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AdminDriverManagement()),
+                );
+              }),
+              _dashboardButton(
+                  context, Icons.person, 'Manage Passengers', () {}),
+              _dashboardButton(
+                  context, Icons.report_problem, 'Review Complaints', () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ReviewComplaintsPage()),
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+
+      // Bottom Navigation Bar
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.blue[800],
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.white,
+        currentIndex: _selectedIndex,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.directions_bus), label: 'Drivers'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.people), label: 'Passengers'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.settings), label: 'Settings'),
+        ],
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
+    );
+  }
+
+  // Overview Card Widget
+  Widget _overviewCard(String title, IconData icon, Color color, int count) {
+    return Expanded(
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        elevation: 3,
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            children: [
+              Icon(icon, color: color, size: 40),
+              const SizedBox(height: 10),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 5),
+              Text(
+                count.toString(), // Dynamic count
+                style: TextStyle(
+                    fontSize: 20, fontWeight: FontWeight.bold, color: color),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Dashboard Button Widget
+  Widget _dashboardButton(
+      BuildContext context, IconData icon, String title, VoidCallback onTap) {
+    return SizedBox(
+      height: 100,
+      child: Card(
+        color: Colors.white,
+        margin: const EdgeInsets.symmetric(vertical: 12.0),
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: InkWell(
+          onTap: onTap,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.black, size: 30),
+              const SizedBox(width: 10),
+              Text(title, style: const TextStyle(fontSize: 18)),
+            ],
+          ),
         ),
       ),
     );

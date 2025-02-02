@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shuttle_service/screens/userScreens/complaints.dart';
+import 'package:shuttle_service/screens/userScreens/favouritepages.dart';
+import 'package:shuttle_service/screens/userScreens/my_bookings.dart';
+import 'package:shuttle_service/screens/userScreens/special_requsets_main.dart';
 import 'seatreservation.dart';
-import 'ShuttleTracking.dart';
-import 'notification.dart';
-import 'feedback.dart';
-import 'myBooking.dart';
 import 'userProfile.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -195,24 +195,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   },
                 ),
                 _DashCard(
-                  icon: Icons.emoji_people,
-                  title: 'Request for Special Shuttle',
-                  onTap: () {
-                    // Navigate to special shuttle request page
-                  },
-                ),
-                _DashCard(
                   icon: Icons.bookmark,
                   title: 'My Shuttle List',
                   onTap: () {
                     // Navigate to my shuttle list page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FavoritesPage(),
+                      ),
+                    );
+                  },
+                ),
+                _DashCard(
+                  icon: Icons.emoji_people,
+                  title: 'Request for Special Shuttle',
+                  onTap: () {
+                    // Navigate to special shuttle request page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SpecialRequsetsMain(),
+                      ),
+                    );
                   },
                 ),
                 _DashCard(
                   icon: Icons.report,
                   title: 'Make a complaint',
                   onTap: () {
-                    // Navigate to my shuttle list page
+                    // Navigate to complaint page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PassengerComplaintPage(),
+                      ),
+                    );
                   },
                 ),
               ],
@@ -264,8 +282,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Activities',
+            icon: Icon(Icons.event_seat),
+            label: 'My Bookings',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
@@ -288,6 +306,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               break;
             case 1:
               // Navigate to Activities page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MyBookingsPage(),
+                ),
+              );
               break;
             case 2:
               // Navigate to Notifications page

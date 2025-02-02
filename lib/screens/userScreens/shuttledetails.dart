@@ -1,17 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shuttle_service/screens/userScreens/BookingDetailsPage.dart';
 
-class ShuttleDetailsPage extends StatelessWidget {
+class ShuttleDetailsPage extends StatefulWidget {
   final String shuttleId;
 
   const ShuttleDetailsPage({Key? key, required this.shuttleId})
       : super(key: key);
 
+  @override
+  _ShuttleDetailsPageState createState() => _ShuttleDetailsPageState();
+}
+
+class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
+  bool _isFavorite = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfFavorite();
+  }
+
+  Future<void> _checkIfFavorite() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final favoriteDoc = await FirebaseFirestore.instance
+        .collection('user_favorites')
+        .doc(user.uid)
+        .collection('shuttles')
+        .doc(widget.shuttleId)
+        .get();
+
+    setState(() {
+      _isFavorite = favoriteDoc.exists;
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to add favorites')),
+      );
+      return;
+    }
+
+    final favoriteRef = FirebaseFirestore.instance
+        .collection('user_favorites')
+        .doc(user.uid)
+        .collection('shuttles')
+        .doc(widget.shuttleId);
+
+    try {
+      if (_isFavorite) {
+        // Remove from favorites
+        await favoriteRef.delete();
+        setState(() {
+          _isFavorite = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Removed from favorites')),
+        );
+      } else {
+        // Add to favorites
+        await favoriteRef.set({
+          'shuttleId': widget.shuttleId,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+        setState(() {
+          _isFavorite = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Added to favorites')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
   Future<Map<String, dynamic>?> _fetchShuttleDetails() async {
     try {
       final docSnapshot = await FirebaseFirestore.instance
-          .collection('drivers') // Ensure this matches your Firestore structure
-          .doc(shuttleId)
+          .collection('drivers')
+          .doc(widget.shuttleId)
           .get();
 
       if (docSnapshot.exists) {
@@ -19,6 +95,23 @@ class ShuttleDetailsPage extends StatelessWidget {
       }
     } catch (e) {
       debugPrint('Error fetching shuttle details: $e');
+    }
+    return null;
+  }
+
+  Future<Map<String, dynamic>?> _fetchDriverBookings(String driverName) async {
+    try {
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('driver_bookings')
+          .where('driver_name', isEqualTo: driverName)
+          .limit(1)
+          .get();
+
+      if (docSnapshot.docs.isNotEmpty) {
+        return docSnapshot.docs.first.data();
+      }
+    } catch (e) {
+      debugPrint('Error fetching driver bookings: $e');
     }
     return null;
   }
@@ -31,8 +124,11 @@ class ShuttleDetailsPage extends StatelessWidget {
         backgroundColor: Colors.green,
         actions: [
           IconButton(
-            icon: const Icon(Icons.favorite_border),
-            onPressed: () {},
+            icon: Icon(
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorite ? Colors.red : null,
+            ),
+            onPressed: _toggleFavorite,
           ),
         ],
       ),
@@ -74,20 +170,20 @@ class ShuttleDetailsPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       _buildSectionTitle('Driver Details'),
-                      Text('Driver Name: $driverName'),
+                      Text('👤 Driver Name: $driverName'),
                       const SizedBox(height: 8),
-                      Text('Phone: ${shuttle['phone'] ?? 'Unknown'}'),
+                      Text('📞 Phone: ${shuttle['phone'] ?? 'Unknown'}'),
                       const SizedBox(height: 16),
                       _buildSectionTitle('Shuttle Details'),
-                      Text('Shuttle Type: $shuttleType'),
-                      Text('License Plate: $licensePlate'),
-                      Text('Capacity: $capacity'),
-                      Text('Route: $route'),
+                      Text('🚌 Shuttle Type: $shuttleType'),
+                      Text('🔖 License Plate: $licensePlate'),
+                      Text('🪑 Capacity: $capacity'),
+                      Text('🚦 Route: $route'),
                       const SizedBox(height: 16),
-                      _buildSectionTitle('Price'),
+                      _buildSectionTitle('💲 Price'),
                       Text('LKR: $price'),
                       const SizedBox(height: 16),
-                      _buildSectionTitle('Main Stops'),
+                      _buildSectionTitle('📍 Main Stops'),
                       mainStops.isEmpty
                           ? const Text('No stops available.')
                           : Column(
@@ -111,19 +207,60 @@ class ShuttleDetailsPage extends StatelessWidget {
                       const SizedBox(height: 24),
                       if (morningJourneyTime != null)
                         Text(
-                          'Morning Journey: ${_formatTimestamp(morningJourneyTime, context)}',
+                          '🕗 Morning Journey: ${_formatTimestamp(morningJourneyTime, context)}',
                         ),
 
-                      // Book Now Button
+                      // Fetch bookings and show number of bookings for morning and evening journeys
+                      FutureBuilder<Map<String, dynamic>?>(
+                        future: _fetchDriverBookings(driverName),
+                        builder: (context, bookingSnapshot) {
+                          if (bookingSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (bookingSnapshot.hasError) {
+                            return Text(
+                                'Error fetching bookings: ${bookingSnapshot.error}');
+                          } else if (!bookingSnapshot.hasData ||
+                              bookingSnapshot.data == null) {
+                            return const Text('No bookings data available.');
+                          } else {
+                            final bookings = bookingSnapshot.data!;
+                            final morningBookings =
+                                bookings['bookings_for_morning'] ?? 0;
+                            final eveningBookings =
+                                bookings['bookings_for_evening'] ?? 0;
+
+                            return Column(
+                              children: [
+                                Text('Bookings: $morningBookings / $capacity'),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+
+                      // Morning Journey Reserve Now Button with Unique ID
                       ElevatedButton(
                         onPressed: () {
-                          // TODO: Implement booking logic
+                          final uniqueId =
+                              'reserve_${widget.shuttleId}_morning';
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BookingDetailsPage(
+                                journeyType: 'Morning Journey',
+                                price: price,
+                                driverName: driverName,
+                                phone: shuttle['phone'] ?? 'Unknown',
+                              ),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 30,
-                            vertical: 12,
+                            vertical: 10,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
@@ -131,34 +268,73 @@ class ShuttleDetailsPage extends StatelessWidget {
                         ),
                         child: const Text(
                           'Reserve Now',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
+                          style: TextStyle(fontSize: 12, color: Colors.white),
                         ),
                       ),
                       const SizedBox(height: 24),
 
                       if (eveningJourneyTime != null)
                         Text(
-                          'Evening Journey: ${_formatTimestamp(eveningJourneyTime, context)}',
+                          '🕗 Evening Journey: ${_formatTimestamp(eveningJourneyTime, context)}',
                         ),
-                      // const SizedBox(height: 24),
-                      // Book Now Button
+
+                      // Fetch bookings and show number of bookings for evening journeys
+                      FutureBuilder<Map<String, dynamic>?>(
+                        future: _fetchDriverBookings(driverName),
+                        builder: (context, bookingSnapshot) {
+                          if (bookingSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (bookingSnapshot.hasError) {
+                            return Text(
+                                'Error fetching bookings: ${bookingSnapshot.error}');
+                          } else if (!bookingSnapshot.hasData ||
+                              bookingSnapshot.data == null) {
+                            return const Text('No bookings data available.');
+                          } else {
+                            final bookings = bookingSnapshot.data!;
+                            final eveningBookings =
+                                bookings['bookings_for_evening'] ?? 0;
+
+                            return Column(
+                              children: [
+                                Text(' Bookings: $eveningBookings / $capacity'),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+
+                      // Evening Journey Reserve Now Button with Unique ID
                       ElevatedButton(
                         onPressed: () {
-                          // TODO: Implement booking logic
+                          final uniqueId =
+                              'reserve_${widget.shuttleId}_evening';
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BookingDetailsPage(
+                                journeyType: 'Evening Journey',
+                                price: price,
+                                driverName: driverName,
+                                phone: shuttle['phone'] ?? 'Unknown',
+                              ),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 30,
-                            vertical: 12,
+                            vertical: 10,
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
                         ),
                         child: const Text(
-                          'Reserve Now',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
+                          'Reserve Now ',
+                          style: TextStyle(fontSize: 12, color: Colors.white),
                         ),
                       ),
                     ],
