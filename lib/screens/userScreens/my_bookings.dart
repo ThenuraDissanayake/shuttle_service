@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:shuttle_service/screens/userScreens/track_driver_page.dart';
 
 class MyBookingsPage extends StatefulWidget {
   const MyBookingsPage({Key? key}) : super(key: key);
@@ -237,7 +238,16 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                             const SizedBox(height: 12),
                             Center(
                               child: ElevatedButton.icon(
-                                onPressed: () => (),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => TrackDriverPage(
+                                        driverName: booking['driverName'],
+                                      ),
+                                    ),
+                                  );
+                                },
                                 icon: const Icon(Icons.location_on),
                                 label: const Text('Track my shuttle'),
                                 style: ElevatedButton.styleFrom(

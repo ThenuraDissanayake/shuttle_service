@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/update_driver_location.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/view_special_requests.dart';
 import 'shuttleManagement.dart';
 import 'booking_requests_management.dart';
@@ -644,7 +645,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard_customize),
-            label: 'Shuttle Operations',
+            label: 'Real time updates',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
@@ -666,6 +667,12 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
               );
               break;
             case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DriverLocationPage(),
+                ),
+              );
               // Navigate to Activities page
               break;
             case 2:
