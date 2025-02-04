@@ -104,19 +104,18 @@ class _DriverLocationPageState extends State<DriverLocationPage> {
   }
 
   void _startLocationUpdates() {
-    if (_locationSubscription != null)
-      return; // Prevent overlapping subscriptions
+    if (_locationSubscription != null) return; // Prevent duplicates
 
     _locationSubscription = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 10, // Update every 10 meters
+        distanceFilter: 10,
       ),
     ).listen((Position position) async {
       if (currentUser != null) {
-        print('Updating location for driver: ${currentUser!.uid}');
+        // Debug log to confirm updates
         print(
-            'Latitude: ${position.latitude}, Longitude: ${position.longitude}');
+            "Updating driver location: ${position.latitude}, ${position.longitude}");
 
         await _firestore.collection('drivers').doc(currentUser!.uid).update({
           'latitude': position.latitude,
@@ -130,7 +129,7 @@ class _DriverLocationPageState extends State<DriverLocationPage> {
 
   void _stopLocationUpdates() {
     _locationSubscription?.cancel();
-    _locationSubscription = null; // Reset the subscription
+    _locationSubscription = null; // Reset subscription
     if (currentUser != null) {
       _firestore.collection('drivers').doc(currentUser!.uid).update({
         'isLocationOn': false,

@@ -19,8 +19,7 @@ class _TrackDriverPageState extends State<TrackDriverPage> {
   GoogleMapController? _mapController;
   StreamSubscription<QuerySnapshot>? _locationSubscription;
   final Set<Marker> _markers = {};
-  LatLng _defaultLocation =
-      const LatLng(6.9271, 79.8612); // Default location (Colombo)
+  LatLng _defaultLocation = const LatLng(6.9271, 79.8612);
 
   @override
   void initState() {
@@ -36,6 +35,9 @@ class _TrackDriverPageState extends State<TrackDriverPage> {
         .listen((snapshot) {
       if (snapshot.docs.isNotEmpty) {
         final driverData = snapshot.docs.first.data();
+        // Debug log to confirm data received
+        print("Received driver data: $driverData");
+
         if (driverData['isLocationOn'] == true &&
             driverData['latitude'] != null &&
             driverData['longitude'] != null) {
