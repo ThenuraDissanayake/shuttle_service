@@ -155,7 +155,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Booking Details'),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

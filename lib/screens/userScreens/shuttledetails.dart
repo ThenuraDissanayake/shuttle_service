@@ -121,7 +121,7 @@ class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shuttle Details'),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
         actions: [
           IconButton(
             icon: Icon(

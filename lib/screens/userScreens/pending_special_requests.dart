@@ -24,7 +24,7 @@ class PendingSpecialShuttlePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('pending Special Shuttle'),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
       ),
       body: StreamBuilder<QuerySnapshot>(
         // Query the special_shuttle_requests collection and filter by status 'pending'

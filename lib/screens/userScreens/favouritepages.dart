@@ -58,7 +58,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Favorite Shuttles'),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _fetchFavoriteShuttles(),

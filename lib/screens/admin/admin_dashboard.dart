@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:shuttle_service/screens/admin/admin_settings.dart';
+import 'package:shuttle_service/screens/admin/adminnotificationpage.dart';
 import 'package:shuttle_service/screens/admin/driver_management.dart';
 import 'package:shuttle_service/screens/admin/review_complaints.dart';
 
@@ -85,7 +87,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 children: [
                   _overviewCard('Total Drivers', Icons.directions_bus,
                       Colors.red, totalDrivers),
-                  _overviewCard('Pending Approvals', Icons.pending,
+                  _overviewCard('Pending Driver Approvals', Icons.pending,
                       Colors.orange, pendingApprovals),
                 ],
               ),
@@ -102,22 +104,30 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               const SizedBox(height: 20),
 
               // Action Buttons
-              _dashboardButton(context, Icons.manage_accounts, 'Manage Drivers',
-                  () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => AdminDriverManagement()),
-                );
-              }),
-              _dashboardButton(
-                  context, Icons.person, 'Manage Passengers', () {}),
+              // _dashboardButton(context, Icons.manage_accounts, 'Manage Drivers',
+              //     () {
+              //   Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //         builder: (context) => AdminDriverManagement()),
+              //   );
+              // }),
+              // _dashboardButton(
+              //     context, Icons.person, 'Manage Passengers', () {}),
               _dashboardButton(
                   context, Icons.report_problem, 'Review Complaints', () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const ReviewComplaintsPage()),
+                );
+              }),
+              _dashboardButton(context, Icons.notification_add, 'Send Messages',
+                  () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const AdminNotificationPage()),
                 );
               }),
             ],
@@ -142,9 +152,34 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               icon: Icon(Icons.settings), label: 'Settings'),
         ],
         onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          switch (index) {
+            case 0:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminDashboardScreen(),
+                ),
+              );
+              break;
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdminDriverManagement(),
+                ),
+              );
+              break;
+            case 2:
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminSettingsPage(),
+                ),
+              );
+              break;
+          }
         },
       ),
     );

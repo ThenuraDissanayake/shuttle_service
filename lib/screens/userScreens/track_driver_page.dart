@@ -72,7 +72,7 @@ class _TrackDriverPageState extends State<TrackDriverPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Track ${widget.driverName}'),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance

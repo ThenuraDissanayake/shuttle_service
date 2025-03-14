@@ -1,13 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/bank_details.dart';
+import 'package:shuttle_service/screens/admin/admin_dashboard.dart';
+import 'package:shuttle_service/screens/admin/driver_management.dart';
 import 'package:shuttle_service/screens/welcome.dart';
-import 'driver_pro.dart';
-import 'shuttledashboard.dart';
 
-class UserProfilePage extends StatelessWidget {
-  const UserProfilePage({super.key});
+class AdminSettingsPage extends StatelessWidget {
+  const AdminSettingsPage({super.key});
 
   Future<void> _logout(BuildContext context) async {
     try {
@@ -32,7 +31,7 @@ class UserProfilePage extends StatelessWidget {
       final user = FirebaseAuth.instance.currentUser; // Get current user
       if (user != null) {
         final doc = await FirebaseFirestore.instance
-            .collection('owners') // Adjust collection name if needed
+            .collection('admins') // Adjust collection name if needed
             .doc(user.uid)
             .get();
 
@@ -57,12 +56,12 @@ class UserProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
-        title: const Text('User Profile'),
+        backgroundColor: Colors.blue[800],
+        title: const Text('Admin Profile'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context), // Call the logout function
+            onPressed: () => _logout(context),
           ),
         ],
       ),
@@ -84,6 +83,12 @@ class UserProfilePage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 20.0),
                     child: Column(
                       children: [
+                        // const CircleAvatar(
+                        //   radius: 60,
+                        //   backgroundImage: AssetImage(
+                        //       'assets/profile_placeholder.png'), // Placeholder image
+                        // ),
+                        // const SizedBox(height: 10),
                         Text(
                           userData['name'] ??
                               'Unknown User', // Display user name
@@ -104,14 +109,9 @@ class UserProfilePage extends StatelessWidget {
                       children: [
                         _buildProfileOption(
                           icon: Icons.person,
-                          title: 'Edit Personal Details',
+                          title: 'Add or Remove Admins',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const DriverDetailsPage()),
-                            );
+                            // Navigate to edit personal details screen
                           },
                         ),
                         _buildProfileOption(
@@ -119,20 +119,6 @@ class UserProfilePage extends StatelessWidget {
                           title: 'Change Password',
                           onTap: () {
                             // Navigate to change password screen
-                          },
-                        ),
-                        _buildProfileOption(
-                          icon: Icons.payment,
-                          title: 'Bank Details',
-                          onTap: () {
-                            // Navigate to bank details screen
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const DriverPaymentDetailsPage()),
-                            );
-                            // Navigate to booking preferences screen
                           },
                         ),
                         _buildProfileOption(
@@ -151,46 +137,46 @@ class UserProfilePage extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.green,
-        selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-        unselectedItemColor: const Color.fromARGB(255, 255, 255, 255),
-        currentIndex: 3, // Set the current tab index (Account tab)
+        backgroundColor: Colors.blue[800],
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.white,
+        currentIndex: 3,
         items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+              icon: Icon(Icons.directions_bus), label: 'Drivers'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Activities',
-          ),
+              icon: Icon(Icons.people), label: 'Passengers'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle_rounded),
-            label: 'Account',
-          ),
+              icon: Icon(Icons.settings), label: 'Settings'),
         ],
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const OwnerDashboardPage(),
+                  builder: (context) => const AdminDashboardScreen(),
                 ),
               );
               break;
             case 1:
-              // Navigate to Activities page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdminDriverManagement(),
+                ),
+              );
               break;
             case 2:
-              // Navigate to Notifications page
               break;
             case 3:
-              // Stay on the current page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminSettingsPage(),
+                ),
+              );
               break;
           }
         },
@@ -208,7 +194,7 @@ class UserProfilePage extends StatelessWidget {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: ListTile(
-        leading: Icon(icon, color: Colors.green, size: 30),
+        leading: Icon(icon, color: Colors.blue[800], size: 30),
         title: Text(title, style: const TextStyle(fontSize: 18)),
         trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
         onTap: onTap,

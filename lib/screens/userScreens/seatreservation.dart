@@ -83,7 +83,7 @@ class _FindActiveShuttlesPageState extends State<FindActiveShuttlesPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Find Active Shuttles'),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

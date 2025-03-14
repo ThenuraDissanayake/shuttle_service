@@ -157,7 +157,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Bookings'),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -191,6 +191,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
+                            Text('Driver: ${booking['driverName'] ?? 'N/A'}'),
                             Text(
                                 'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
                             Text(
@@ -224,6 +225,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
+                            Text('Driver: ${booking['driverName'] ?? 'N/A'}'),
                             Text(
                                 'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
                             Text(
@@ -287,6 +289,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
+                            Text('Driver: ${booking['driverName'] ?? 'N/A'}'),
                             Text(
                                 'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
                             Text(
@@ -320,6 +323,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
+                            Text('Driver: ${booking['driverName'] ?? 'N/A'}'),
                             Text(
                                 'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
                             Text(

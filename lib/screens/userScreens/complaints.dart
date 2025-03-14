@@ -11,7 +11,7 @@ class PassengerComplaintPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Complaints'),
         centerTitle: true,
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
       ),
       body: Center(
         child: Padding(

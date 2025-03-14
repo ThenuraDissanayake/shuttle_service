@@ -7,7 +7,7 @@ class OngoingActivitiesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
         title: const Text('Ongoing Activities'),
         actions: [
           IconButton(

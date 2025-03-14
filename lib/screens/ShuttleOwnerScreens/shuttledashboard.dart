@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/drivernotificationpage.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/qr_scanner.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/update_driver_location.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/view_special_requests.dart';
 import 'shuttleManagement.dart';
@@ -18,6 +20,7 @@ class OwnerDashboardPage extends StatefulWidget {
 class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
   String _userName = "User"; // Default value if no name is found
   bool _isDriverDetailsComplete = true;
+  String _greeting = "";
 
   get pendingRequests => null; // Flag to check if details are complete
 
@@ -26,6 +29,20 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
     super.initState();
     _fetchUserName();
     _checkDriverDetails(); // Check if driver details are submitted
+    _updateGreeting();
+  }
+
+  void _updateGreeting() {
+    var hour = DateTime.now().hour;
+    setState(() {
+      if (hour < 12) {
+        _greeting = 'Good Morning';
+      } else if (hour < 17) {
+        _greeting = 'Good Afternoon';
+      } else {
+        _greeting = 'Good Evening';
+      }
+    });
   }
 
   Future<Map<String, int>> _fetchPendingRequests() async {
@@ -205,7 +222,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
         title: Align(
           alignment: Alignment.centerLeft, // Align title to the left
           child: Column(
@@ -215,14 +232,14 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
               Text(
                 'Hi, $_userName',
                 style: const TextStyle(
-                    color: Colors.white,
+                    // color: Colors.white,
                     fontSize: 15), // Set text color to white
               ),
-              const Text(
-                'Welcome to UniShuttle',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18), // Set text color to white
+              Text(
+                '$_greeting!',
+                style: const TextStyle(
+                    // color: Colors.white,
+                    fontSize: 15), // Set text color to white
               ),
             ],
           ),
@@ -512,7 +529,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                   children: [
                     _DashCard(
                       icon: Icons.bus_alert,
-                      title: 'Shuttle status',
+                      title: 'Shuttle status / Times',
                       onTap: () {
                         // Navigate to shuttle reservation page
                         Navigator.push(
@@ -548,6 +565,31 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                           MaterialPageRoute(
                             builder: (context) =>
                                 const SpecialRequestsPage(), // Replace with your destination page
+                          ),
+                        );
+                      },
+                    ),
+                    _DashCard(
+                      icon: Icons.qr_code_scanner,
+                      title: 'ShuttlePassScan',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const DriverScanQRPage(), // Replace with your destination page
+                          ),
+                        );
+                      },
+                    ),
+                    _DashCard(
+                      icon: Icons.location_on,
+                      title: 'Share live Location',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DriverLocationPage(),
                           ),
                         );
                       },
@@ -634,9 +676,9 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
       // Bottom navigation bar
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
         selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-        unselectedItemColor: const Color.fromARGB(255, 255, 255, 255),
+        unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
         currentIndex: 0, // Default active tab
         items: const [
           BottomNavigationBarItem(
@@ -676,6 +718,12 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
               // Navigate to Activities page
               break;
             case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DriverNotificationPage(),
+                ),
+              );
               // Navigate to Notifications page
               break;
             case 3:

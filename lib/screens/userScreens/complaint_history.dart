@@ -22,8 +22,8 @@ class ComplaintHistoryPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-          title: const Text('Complaint History'),
-          backgroundColor: Colors.green),
+        title: const Text('Complaint History'),
+      ),
       body: StreamBuilder<QuerySnapshot>(
         // Query the complaints collection and filter by email
         stream: FirebaseFirestore.instance

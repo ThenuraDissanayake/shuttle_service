@@ -116,7 +116,7 @@ class _ComplaintSubmissionPageState extends State<ComplaintSubmissionPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Submit a Complaint'),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
       ),
       body: _fullName == null || _email == null
           ? const Center(child: CircularProgressIndicator())
