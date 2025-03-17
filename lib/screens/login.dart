@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shuttle_service/screens/admin/admin_dashboard.dart';
-import 'userScreens/dashboard.dart'; // Passenger dashboard
-import 'ShuttleOwnerScreens/shuttledashboard.dart'; // Shuttle owner dashboard
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -43,10 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (passengersDoc.exists) {
           // Navigate to Passenger Dashboard
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const DashboardScreen()),
-          );
+          Navigator.pushNamed(context, '/passenger-dashboard');
           return;
         }
 
@@ -57,10 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (ownersDoc.exists) {
           // Navigate to Shuttle Owner Dashboard
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const OwnerDashboardPage()),
-          );
+          Navigator.pushNamed(context, '/driver-dashboard');
           return;
         }
 
@@ -70,11 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
             .get();
 
         if (adminsDoc.exists) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const AdminDashboardScreen()),
-          );
+          Navigator.pushNamed(context, '/admin-dashboard');
           return;
         }
 

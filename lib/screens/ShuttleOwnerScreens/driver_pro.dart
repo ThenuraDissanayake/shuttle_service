@@ -189,7 +189,7 @@ class _DriverDetailsPageState extends State<DriverDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('$_shuttleNo '),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

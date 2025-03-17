@@ -132,7 +132,7 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
         title: const Text('Booking Requests'),
       ),
       body: isLoading

@@ -149,7 +149,7 @@ class _DriverLocationPageState extends State<DriverLocationPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Location Sharing'),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
       ),
       body: Center(
         child: Column(

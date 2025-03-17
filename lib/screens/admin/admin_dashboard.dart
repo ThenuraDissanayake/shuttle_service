@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shuttle_service/screens/admin/admin_settings.dart';
 import 'package:shuttle_service/screens/admin/adminnotificationpage.dart';
 import 'package:shuttle_service/screens/admin/driver_management.dart';
+import 'package:shuttle_service/screens/admin/passenger_management.dart';
 import 'package:shuttle_service/screens/admin/review_complaints.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -44,7 +45,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       // Fetch total complaints (assuming "complaints" collection exists)
       QuerySnapshot complaintsSnapshot = await FirebaseFirestore.instance
           .collection('complaints')
-          .where('status', isEqualTo: 'Pending') // Filter by status();
+          .where('status', isEqualTo: 'Pending') // Filter by status
           .get();
 
       QuerySnapshot passengerSnapshot =
@@ -54,8 +55,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         totalDrivers = driverSnapshot.size;
         pendingApprovals = pendingSnapshot.size;
         totalComplaints = complaintsSnapshot.size;
-        totalPassengers =
-            passengerSnapshot.size; // Placeholder, no Firestore fetch yet
+        totalPassengers = passengerSnapshot.size;
       });
     } catch (e) {
       print("Error fetching data: $e");
@@ -73,69 +73,69 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           style: TextStyle(color: Colors.white, fontSize: 18),
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          _fetchData(); // Manual refresh on pull-down
-        },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-          child: Column(
-            children: [
-              // Overview Cards
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/background.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Container(
+          color: Colors.white.withOpacity(0.9),
+          child: RefreshIndicator(
+            onRefresh: () async {
+              _fetchData(); // Manual refresh on pull-down
+            },
+            child: SingleChildScrollView(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              child: Column(
                 children: [
-                  _overviewCard('Total Drivers', Icons.directions_bus,
-                      Colors.red, totalDrivers),
-                  _overviewCard('Pending Driver Approvals', Icons.pending,
-                      Colors.orange, pendingApprovals),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _overviewCard('Total Complaints', Icons.report, Colors.purple,
-                      totalComplaints),
-                  _overviewCard('Total Passengers', Icons.people, Colors.blue,
-                      totalPassengers), // Placeholder, no Firestore fetch yet
-                ],
-              ),
-              const SizedBox(height: 20),
+                  // Overview Cards
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _overviewCard('Total Drivers', Icons.directions_bus,
+                          Colors.red, totalDrivers),
+                      _overviewCard('Pending Driver Approvals', Icons.pending,
+                          Colors.orange, pendingApprovals),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _overviewCard('Total Complaints', Icons.report,
+                          Colors.purple, totalComplaints),
+                      _overviewCard('Total Passengers', Icons.people,
+                          Colors.blue, totalPassengers),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
 
-              // Action Buttons
-              // _dashboardButton(context, Icons.manage_accounts, 'Manage Drivers',
-              //     () {
-              //   Navigator.push(
-              //     context,
-              //     MaterialPageRoute(
-              //         builder: (context) => AdminDriverManagement()),
-              //   );
-              // }),
-              // _dashboardButton(
-              //     context, Icons.person, 'Manage Passengers', () {}),
-              _dashboardButton(
-                  context, Icons.report_problem, 'Review Complaints', () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ReviewComplaintsPage()),
-                );
-              }),
-              _dashboardButton(context, Icons.notification_add, 'Send Messages',
-                  () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const AdminNotificationPage()),
-                );
-              }),
-            ],
+                  // Action Buttons
+                  _dashboardButton(
+                      context, Icons.report_problem, 'Review Complaints', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ReviewComplaintsPage()),
+                    );
+                  }),
+                  _dashboardButton(
+                      context, Icons.notification_add, 'Send Messages', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const AdminNotificationPage()),
+                    );
+                  }),
+                ],
+              ),
+            ),
           ),
         ),
       ),
-
-      // Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.blue[800],
@@ -170,6 +170,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               );
               break;
             case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminPassengerManagement(),
+                ),
+              );
               break;
             case 3:
               Navigator.push(
@@ -185,7 +191,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // Overview Card Widget
   Widget _overviewCard(String title, IconData icon, Color color, int count) {
     return Expanded(
       child: Card(
@@ -197,12 +202,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             children: [
               Icon(icon, color: color, size: 40),
               const SizedBox(height: 10),
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 5),
               Text(
-                count.toString(), // Dynamic count
+                count.toString(),
                 style: TextStyle(
                     fontSize: 20, fontWeight: FontWeight.bold, color: color),
               ),
@@ -213,7 +220,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // Dashboard Button Widget
   Widget _dashboardButton(
       BuildContext context, IconData icon, String title, VoidCallback onTap) {
     return SizedBox(
