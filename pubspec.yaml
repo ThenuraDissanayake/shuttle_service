@@ -45,6 +45,7 @@ dependencies:
   geolocator: ^13.0.2
   mobile_scanner: ^6.0.7
   firebase_messaging: ^15.2.4
+  payhere_mobilesdk_flutter: ^2.0.0 # Downgraded version for SDK compatibility
 
 dev_dependencies:
   flutter_test:

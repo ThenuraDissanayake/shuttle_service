@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shuttle_service/routs.dart';
 import 'package:shuttle_service/services/notification_service.dart';
+
 import 'screens/welcome.dart'; // Import the Welcome screen
 
 void main() async {

@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/Driver_userProfile.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/shuttledashboard.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/update_driver_location.dart';
 
 class DriverNotificationPage extends StatefulWidget {
   const DriverNotificationPage({super.key});
@@ -32,6 +35,68 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
           _buildReceivedNotificationsTab(),
           _buildSentNotificationsTab(),
         ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
+        unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
+        currentIndex: 2,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_customize),
+            label: 'Real time updates',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications),
+            label: 'Notifications',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle_rounded),
+            label: 'Account',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OwnerDashboardPage(),
+                ),
+              );
+              break;
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DriverLocationPage(),
+                ),
+              );
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DriverNotificationPage(),
+                ),
+              );
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UserProfilePage(),
+                ),
+              );
+              break;
+          }
+        },
+        selectedLabelStyle: const TextStyle(fontSize: 12),
+        unselectedLabelStyle: const TextStyle(fontSize: 12),
       ),
     );
   }
@@ -472,11 +537,11 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
           return Card(
             margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             elevation: isRead ? 1 : 3,
-            color: isRead ? null : Colors.blue[50],
+            color: isRead ? null : Colors.green[50],
             child: ListTile(
               contentPadding: EdgeInsets.all(12),
               leading: CircleAvatar(
-                backgroundColor: isRead ? Colors.grey : Colors.blue,
+                backgroundColor: isRead ? Colors.grey : Colors.green,
                 child: Icon(
                   Icons.notifications,
                   color: Colors.white,
@@ -504,7 +569,7 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
               ),
               trailing: !isRead
                   ? IconButton(
-                      icon: Icon(Icons.done, color: Colors.blue),
+                      icon: Icon(Icons.done, color: Colors.green),
                       onPressed: () => markAsRead(notification['id']),
                     )
                   : null,
@@ -610,7 +675,7 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
                                 horizontal: 16, vertical: 4),
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: Colors.blue,
+                                backgroundColor: Colors.green,
                                 child: Icon(Icons.person, color: Colors.white),
                               ),
                               title: Text(passengerName),
@@ -626,7 +691,7 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
                                 ],
                               ),
                               trailing: IconButton(
-                                icon: Icon(Icons.message, color: Colors.blue),
+                                icon: Icon(Icons.message, color: Colors.green),
                                 onPressed: () =>
                                     _showSendNotificationDialog(passengerName),
                               ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'registration.dart'; // Import the DynamicRegistrationScreen
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});

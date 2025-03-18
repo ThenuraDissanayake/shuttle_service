@@ -2,6 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shuttle_service/screens/userScreens/dashboard.dart';
+import 'package:shuttle_service/screens/userScreens/my_bookings.dart';
+import 'package:shuttle_service/screens/userScreens/userProfile.dart';
 
 class PassengerNotificationPage extends StatefulWidget {
   const PassengerNotificationPage({super.key});
@@ -301,12 +304,12 @@ class _PassengerNotificationPageState extends State<PassengerNotificationPage> {
                           margin:
                               EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                           elevation: isRead ? 1 : 3,
-                          color: isRead ? null : Colors.blue[50],
+                          color: isRead ? null : Colors.green[50],
                           child: ListTile(
                             contentPadding: EdgeInsets.all(12),
                             leading: CircleAvatar(
                               backgroundColor:
-                                  isRead ? Colors.grey : Colors.blue,
+                                  isRead ? Colors.grey : Colors.green,
                               child: Icon(
                                 Icons.notifications,
                                 color: Colors.white,
@@ -370,6 +373,69 @@ class _PassengerNotificationPageState extends State<PassengerNotificationPage> {
                   ),
           ),
         ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        // backgroundColor: const Color.fromARGB(255, 184, 245, 186),
+        selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
+        unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
+        currentIndex: 2, // Default active tab
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.event_seat),
+            label: 'My Bookings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications),
+            label: 'Notifications',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle_rounded),
+            label: 'Account',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DashboardScreen(),
+                ),
+              );
+              break;
+            case 1:
+              // Navigate to Activities page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MyBookingsPage(),
+                ),
+              );
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PassengerNotificationPage(),
+                ),
+              );
+              // Navigate to Notifications page
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UserProfilePage(),
+                ),
+              );
+              break;
+          }
+        },
       ),
     );
   }

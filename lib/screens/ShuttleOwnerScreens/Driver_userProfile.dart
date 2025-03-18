@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/bank_details.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/drivernotificationpage.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/update_driver_location.dart';
 import 'package:shuttle_service/screens/welcome.dart';
 import 'driver_pro.dart';
 import 'shuttledashboard.dart';
@@ -151,18 +153,17 @@ class UserProfilePage extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.green,
         selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-        unselectedItemColor: const Color.fromARGB(255, 255, 255, 255),
-        currentIndex: 3, // Set the current tab index (Account tab)
+        unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
+        currentIndex: 3,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Activities',
+            icon: Icon(Icons.dashboard_customize),
+            label: 'Real time updates',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
@@ -176,7 +177,7 @@ class UserProfilePage extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const OwnerDashboardPage(),
@@ -184,16 +185,33 @@ class UserProfilePage extends StatelessWidget {
               );
               break;
             case 1:
-              // Navigate to Activities page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DriverLocationPage(),
+                ),
+              );
               break;
             case 2:
-              // Navigate to Notifications page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DriverNotificationPage(),
+                ),
+              );
               break;
             case 3:
-              // Stay on the current page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UserProfilePage(),
+                ),
+              );
               break;
           }
         },
+        selectedLabelStyle: const TextStyle(fontSize: 12),
+        unselectedLabelStyle: const TextStyle(fontSize: 12),
       ),
     );
   }

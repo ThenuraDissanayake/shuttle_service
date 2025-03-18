@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shuttle_service/screens/userScreens/my_bookings.dart';
+import 'package:shuttle_service/screens/userScreens/passengernotiificationpage.dart';
 import 'package:shuttle_service/screens/welcome.dart';
 import 'dashboard.dart';
 
@@ -143,9 +145,9 @@ class UserProfilePage extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.green,
+        // backgroundColor: const Color.fromARGB(255, 184, 245, 186),
         selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-        unselectedItemColor: const Color.fromARGB(255, 255, 255, 255),
+        unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
         currentIndex: 3, // Default active tab
         items: const [
           BottomNavigationBarItem(
@@ -153,8 +155,8 @@ class UserProfilePage extends StatelessWidget {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Activities',
+            icon: Icon(Icons.event_seat),
+            label: 'My Bookings',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
@@ -177,8 +179,20 @@ class UserProfilePage extends StatelessWidget {
               break;
             case 1:
               // Navigate to Activities page
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MyBookingsPage(),
+                ),
+              );
               break;
             case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PassengerNotificationPage(),
+                ),
+              );
               // Navigate to Notifications page
               break;
             case 3:

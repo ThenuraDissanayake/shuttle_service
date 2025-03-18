@@ -102,16 +102,10 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
 
         // Navigate to the appropriate dashboard
         if (_selectedRole == 'Passenger') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const DashboardScreen()),
-          );
+          Navigator.pushNamed(context, '/passenger-dashboard');
         } else if (_selectedRole == 'Driver') {
           // Here, 'Driver' will map to 'Owner'
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const OwnerDashboardPage()),
-          );
+          Navigator.pushNamed(context, '/driver-dashboard');
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
