@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/Driver_userProfile.dart';
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/qr_scanner.dart';
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/shuttledashboard.dart';
 
 class DriverNotificationPage extends StatefulWidget {
   const DriverNotificationPage({super.key});
@@ -62,36 +59,16 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const OwnerDashboardPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-dashboard');
               break;
             case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DriverScanQRPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/qr-scanner');
               break;
             case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DriverNotificationPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-notification');
               break;
             case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-profile');
               break;
           }
         },

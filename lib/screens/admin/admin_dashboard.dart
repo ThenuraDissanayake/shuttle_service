@@ -1,11 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:shuttle_service/screens/admin/admin_settings.dart';
-import 'package:shuttle_service/screens/admin/adminnotificationpage.dart';
-import 'package:shuttle_service/screens/admin/driver_management.dart';
-import 'package:shuttle_service/screens/admin/passenger_complaint_management.dart';
-import 'package:shuttle_service/screens/admin/passenger_management.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -116,20 +111,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   _dashboardButton(
                       context, Icons.report_problem, ' Passenger Complaints',
                       () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              const PassengerComplaintManagement()),
-                    );
+                    Navigator.pushNamed(context, '/passenger-complaints');
                   }),
                   _dashboardButton(
                       context, Icons.notification_add, 'Send Messages', () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const AdminNotificationPage()),
-                    );
+                    Navigator.pushNamed(context, '/admin-notifications');
                   }),
                 ],
               ),
@@ -155,36 +141,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AdminDashboardScreen(),
-                ),
-              );
+              Navigator.pushNamed(context, '/admin-dashboard');
               break;
             case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AdminDriverManagement(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-management');
               break;
             case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AdminPassengerManagement(),
-                ),
-              );
+              Navigator.pushNamed(context, '/passenger-management');
               break;
             case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AdminSettingsPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/admin-settings');
               break;
           }
         },

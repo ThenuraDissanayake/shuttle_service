@@ -3,10 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:shuttle_service/screens/userScreens/dashboard.dart';
-import 'package:shuttle_service/screens/userScreens/passengernotiificationpage.dart';
 import 'package:shuttle_service/screens/userScreens/track_driver_page.dart';
-import 'package:shuttle_service/screens/userScreens/userProfile.dart';
 
 class MyBookingsPage extends StatefulWidget {
   const MyBookingsPage({Key? key}) : super(key: key);
@@ -369,38 +366,17 @@ class _MyBookingsPageState extends State<MyBookingsPage>
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DashboardScreen(),
-                ),
-              );
+              Navigator.pushNamed(context, '/passenger-dashboard');
               break;
             case 1:
-              // Navigate to Activities page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MyBookingsPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/my-bookings');
               break;
             case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PassengerNotificationPage(),
-                ),
-              );
-              // Navigate to Notifications page
+              Navigator.pushNamed(context, '/passenger-notifications');
+
               break;
             case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/passenger-profile');
               break;
           }
         },

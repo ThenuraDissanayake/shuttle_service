@@ -1,10 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shuttle_service/screens/userScreens/my_bookings.dart';
-import 'package:shuttle_service/screens/userScreens/passengernotiificationpage.dart';
-import 'package:shuttle_service/screens/welcome.dart';
-import 'dashboard.dart';
 
 class UserProfilePage extends StatelessWidget {
   const UserProfilePage({super.key});
@@ -12,13 +8,7 @@ class UserProfilePage extends StatelessWidget {
   Future<void> _logout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut(); // Firebase logout
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              const WelcomeScreen(), // Redirect to WelcomeScreen
-        ),
-      );
+      Navigator.pushNamed(context, '/');
     } catch (e) {
       print('Error during logout: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -170,38 +160,17 @@ class UserProfilePage extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DashboardScreen(),
-                ),
-              );
+              Navigator.pushNamed(context, '/passenger-dashboard');
               break;
             case 1:
-              // Navigate to Activities page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MyBookingsPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/my-bookings');
               break;
             case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PassengerNotificationPage(),
-                ),
-              );
-              // Navigate to Notifications page
+              Navigator.pushNamed(context, '/passenger-notifications');
+
               break;
             case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/passenger-profile');
               break;
           }
         },

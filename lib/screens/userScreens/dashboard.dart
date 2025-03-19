@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shuttle_service/screens/userScreens/complaints.dart';
-import 'package:shuttle_service/screens/userScreens/favouritepages.dart';
-import 'package:shuttle_service/screens/userScreens/my_bookings.dart';
-import 'package:shuttle_service/screens/userScreens/passengernotiificationpage.dart';
-import 'package:shuttle_service/screens/userScreens/special_shuttle.dart';
-import 'seatreservation.dart';
-import 'userProfile.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -102,12 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: const Icon(Icons.account_circle),
             onPressed: () {
               // Navigate to User Profile screen
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/passenger-profile');
             },
           ),
         ],
@@ -164,12 +152,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.event_seat,
                     title: '      Reserve a Shuttle',
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FindActiveShuttlesPage(),
-                        ),
-                      );
+                      Navigator.pushNamed(context, '/find-active-shuttles');
                       // Navigate to shuttle reservation page
                     },
                   ),
@@ -178,12 +161,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     title: 'My Shuttle List',
                     onTap: () {
                       // Navigate to my shuttle list page
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FavoritesPage(),
-                        ),
-                      );
+                      Navigator.pushNamed(context, '/favorite-shuttles');
                     },
                   ),
                   _DashCard(
@@ -191,12 +169,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     title: 'Request for Special Shuttle',
                     onTap: () {
                       // Navigate to special shuttle request page
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SpecialShuttlePage(),
-                        ),
-                      );
+                      Navigator.pushNamed(context, '/special-shuttle');
                     },
                   ),
                   _DashCard(
@@ -204,12 +177,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     title: 'Make a complaint',
                     onTap: () {
                       // Navigate to complaint page
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ComplaintManagementPage(),
-                        ),
-                      );
+                      Navigator.pushNamed(
+                          context, '/passenger-make-complaints');
                     },
                   ),
                 ],
@@ -245,38 +214,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DashboardScreen(),
-                ),
-              );
+              Navigator.pushNamed(context, '/passenger-dashboard');
               break;
             case 1:
-              // Navigate to Activities page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MyBookingsPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/my-bookings');
               break;
             case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PassengerNotificationPage(),
-                ),
-              );
-              // Navigate to Notifications page
+              Navigator.pushNamed(context, '/passenger-notifications');
+
               break;
             case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/passenger-profile');
               break;
           }
         },

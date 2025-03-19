@@ -1,14 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/drivernotificationpage.dart';
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/qr_scanner.dart';
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/update_driver_location.dart';
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/view_special_requests.dart';
-import 'shuttleManagement.dart';
-import 'booking_requests_management.dart';
-import 'driver_pro.dart';
-import 'Driver_userProfile.dart';
 
 class OwnerDashboardPage extends StatefulWidget {
   const OwnerDashboardPage({super.key});
@@ -181,11 +173,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const DriverDetailsPage()),
-                  );
+                  Navigator.pushNamed(context, '/driver-details');
                 },
                 child: const Text('Go to Driver Details'),
               ),
@@ -233,12 +221,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
           IconButton(
             icon: const Icon(Icons.account_circle),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-profile');
             },
           ),
         ],
@@ -397,26 +380,16 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                           icon: Icons.event_seat,
                           title: 'Pending Cash Bookings',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const BookingRequestsPage(),
-                              ),
-                            );
+                            Navigator.pushNamed(
+                                context, '/driver-booking-requests');
                           },
                         ),
                         _DashCard(
                           icon: Icons.emoji_people,
                           title: 'Special Shuttle Requests',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const SpecialRequestsPage(),
-                              ),
-                            );
+                            Navigator.pushNamed(
+                                context, '/view-special-shuttle');
                           },
                         ),
                       ],
@@ -440,26 +413,15 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                           icon: Icons.bus_alert,
                           title: 'Shuttle status / Times',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const ShuttleManagementPage(),
-                              ),
-                            );
+                            Navigator.pushNamed(context, '/shuttle-management');
                           },
                         ),
                         _DashCard(
                           icon: Icons.location_on,
                           title: 'Share live Location',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const DriverLocationPage(),
-                              ),
-                            );
+                            Navigator.pushNamed(
+                                context, '/update-driver-location');
                           },
                         ),
                       ],
@@ -498,36 +460,16 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const OwnerDashboardPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-dashboard');
               break;
             case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DriverScanQRPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/qr-scanner');
               break;
             case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DriverNotificationPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-notification');
               break;
             case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-profile');
               break;
           }
         },

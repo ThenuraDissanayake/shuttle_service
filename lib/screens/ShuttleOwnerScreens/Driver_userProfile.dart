@@ -1,27 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/driver_payment_setup.dart';
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/drivernotificationpage.dart';
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/qr_scanner.dart';
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/update_driver_location.dart';
-import 'package:shuttle_service/screens/welcome.dart';
-import 'driver_pro.dart';
-import 'shuttledashboard.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class UserProfilePage extends StatelessWidget {
-  const UserProfilePage({super.key});
+class DUserProfilePage extends StatelessWidget {
+  const DUserProfilePage({super.key});
 
   Future<void> _logout(BuildContext context) async {
     try {
-      await FirebaseAuth.instance.signOut(); // Firebase logout
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              const WelcomeScreen(), // Redirect to WelcomeScreen
-        ),
-      );
+      await FirebaseAuth.instance.signOut(); // Sign out the user
+      Navigator.pushNamed(context, '/');
     } catch (e) {
       print('Error during logout: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -35,7 +22,7 @@ class UserProfilePage extends StatelessWidget {
       final user = FirebaseAuth.instance.currentUser; // Get current user
       if (user != null) {
         final doc = await FirebaseFirestore.instance
-            .collection('owners') // Adjust collection name if needed
+            .collection('owners')
             .doc(user.uid)
             .get();
 
@@ -109,12 +96,7 @@ class UserProfilePage extends StatelessWidget {
                           icon: Icons.person,
                           title: 'Edit Personal Details',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const DriverDetailsPage()),
-                            );
+                            Navigator.pushNamed(context, '/driver-details');
                           },
                         ),
                         _buildProfileOption(
@@ -128,13 +110,8 @@ class UserProfilePage extends StatelessWidget {
                           icon: Icons.payment,
                           title: 'Payment Details',
                           onTap: () {
-                            // Navigate to bank details screen
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => DriverPaymentSetup()),
-                            );
-                            // Navigate to booking preferences screen
+                            Navigator.pushNamed(
+                                context, '/driver-payment-setup');
                           },
                         ),
                         _buildProfileOption(
@@ -177,36 +154,16 @@ class UserProfilePage extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const OwnerDashboardPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-dashboard');
               break;
             case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DriverScanQRPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/qr-scanner');
               break;
             case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DriverNotificationPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-notification');
               break;
             case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-profile');
               break;
           }
         },

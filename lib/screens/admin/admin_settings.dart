@@ -1,9 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shuttle_service/screens/admin/admin_dashboard.dart';
-import 'package:shuttle_service/screens/admin/driver_management.dart';
-import 'package:shuttle_service/screens/welcome.dart';
 
 class AdminSettingsPage extends StatelessWidget {
   const AdminSettingsPage({super.key});
@@ -11,13 +8,7 @@ class AdminSettingsPage extends StatelessWidget {
   Future<void> _logout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut(); // Firebase logout
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              const WelcomeScreen(), // Redirect to WelcomeScreen
-        ),
-      );
+      Navigator.pushNamed(context, '/');
     } catch (e) {
       print('Error during logout: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -153,30 +144,16 @@ class AdminSettingsPage extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AdminDashboardScreen(),
-                ),
-              );
+              Navigator.pushNamed(context, '/admin-dashboard');
               break;
             case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AdminDriverManagement(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-management');
               break;
             case 2:
+              Navigator.pushNamed(context, '/passenger-management');
               break;
             case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AdminSettingsPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/admin-settings');
               break;
           }
         },
