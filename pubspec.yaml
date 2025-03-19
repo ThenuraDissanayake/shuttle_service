@@ -46,6 +46,8 @@ dependencies:
   mobile_scanner: ^6.0.7
   firebase_messaging: ^15.2.4
   payhere_mobilesdk_flutter: ^2.0.0 # Downgraded version for SDK compatibility
+  crypto: ^3.0.6
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_test:

@@ -11,8 +11,11 @@ class Routes {
     return {
       '/login': (context) => const LoginScreen(),
       '/register': (context) => const DynamicRegistrationScreen(),
+      //admin
       '/admin-dashboard': (context) => const AdminDashboardScreen(),
+      //passenger
       '/passenger-dashboard': (context) => const DashboardScreen(),
+      //driver
       '/driver-dashboard': (context) => const OwnerDashboardPage(),
       // '/admin-settings': (context) => const AdminSettingsScreen(),
       // '/admin-notifications': (context) => const AdminNotificationScreen(),

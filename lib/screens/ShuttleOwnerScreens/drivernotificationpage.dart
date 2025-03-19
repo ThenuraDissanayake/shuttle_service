@@ -4,8 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/Driver_userProfile.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/qr_scanner.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/shuttledashboard.dart';
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/update_driver_location.dart';
 
 class DriverNotificationPage extends StatefulWidget {
   const DriverNotificationPage({super.key});
@@ -47,8 +47,8 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_customize),
-            label: 'Real time updates',
+            icon: Icon(Icons.qr_code_scanner),
+            label: 'ShuttlePassScan',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
@@ -73,7 +73,7 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const DriverLocationPage(),
+                  builder: (context) => const DriverScanQRPage(),
                 ),
               );
               break;
@@ -312,7 +312,7 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
           .where('driverName',
               isEqualTo:
                   driverName) // This matches the bookings collection field
-          .where('my_booking', whereIn: ['pending', 'ongoing']).get();
+          .where('my_booking', whereIn: ['ongoing']).get();
 
       setState(() {
         bookingPassengers = bookingsSnapshot.docs
@@ -383,6 +383,7 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
     }
   }
 
+  // Modified to send notification to a single passenger
   Future<void> sendNotification(String passengerName) async {
     String title = _titleController.text.trim();
     String message = _messageController.text.trim();
@@ -433,14 +434,119 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
         SnackBar(content: Text('Notification sent to $passengerName')),
       );
 
-      _titleController.clear();
-      _messageController.clear();
-
       // Refresh the sent notifications list
       loadNotifications();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to send notification: $e')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  // New method to send notifications to all booked passengers at once
+  Future<void> sendNotificationToAllPassengers() async {
+    String title = _titleController.text.trim();
+    String message = _messageController.text.trim();
+
+    if (title.isEmpty || message.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in both title and message')),
+      );
+      return;
+    }
+
+    if (bookingPassengers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No passengers to notify')),
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      // Create a batch to handle multiple writes
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+      int successCount = 0;
+      List<String> failedPassengers = [];
+
+      // Process each passenger
+      for (var booking in bookingPassengers) {
+        String passengerName = booking['passengerName'] ?? '';
+        if (passengerName.isEmpty) continue;
+
+        // Find the passenger's UID from their name
+        QuerySnapshot passengerSnapshot = await FirebaseFirestore.instance
+            .collection('passengers')
+            .where('name', isEqualTo: passengerName)
+            .get();
+
+        if (passengerSnapshot.docs.isEmpty) {
+          failedPassengers.add(passengerName);
+          continue;
+        }
+
+        String passengerUid = passengerSnapshot.docs.first.id;
+
+        // Create a new notification document reference
+        DocumentReference newNotificationRef =
+            FirebaseFirestore.instance.collection('notifications').doc();
+
+        // Set the notification data
+        batch.set(newNotificationRef, {
+          'title': title,
+          'body': message,
+          'recipientToken': passengerUid,
+          'senderId': FirebaseAuth.instance.currentUser?.uid ?? '',
+          'senderRole': 'Driver',
+          'recipientRole': 'Passenger',
+          'timestamp': FieldValue.serverTimestamp(),
+          'read': false,
+        });
+
+        successCount++;
+      }
+
+      // Commit the batch
+      await batch.commit();
+
+      // Show results
+      if (successCount > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Notification sent to $successCount passengers')),
+        );
+
+        // Clear the form
+        _titleController.clear();
+        _messageController.clear();
+
+        // Refresh the sent notifications list
+        loadNotifications();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Failed to send notifications to any passengers')),
+        );
+      }
+
+      // Report failures if any
+      if (failedPassengers.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text('Could not find ${failedPassengers.length} passengers')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error sending notifications: $e')),
       );
     } finally {
       setState(() {
@@ -491,6 +597,64 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
               sendNotification(passengerName);
             },
             child: Text('Send'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // New method to show dialog for sending to all passengers
+  void _showSendToAllPassengersDialog() {
+    _titleController.clear();
+    _messageController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Send to All Passengers (${bookingPassengers.length})'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _titleController,
+                decoration: InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _messageController,
+                decoration: InputDecoration(
+                  labelText: 'Message',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'This will send the notification to all ${bookingPassengers.length} currently booked passengers.',
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              sendNotificationToAllPassengers();
+            },
+            child: Text('Send to All'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
           ),
         ],
       ),
@@ -630,14 +794,29 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
+              const Padding(
                 padding: EdgeInsets.all(16),
-                child: Text(
-                  'Current Passengers',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Current Passengers',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    // if (bookingPassengers.isNotEmpty)
+                    //   ElevatedButton.icon(
+                    //     onPressed: _showSendToAllPassengersDialog,
+                    //     icon: Icon(Icons.send_to_mobile),
+                    //     label: Text('Send to All'),
+                    //     style: ElevatedButton.styleFrom(
+                    //       backgroundColor: Colors.green,
+                    //       foregroundColor: Colors.white,
+                    //     ),
+                    //   ),
+                  ],
                 ),
               ),
               Expanded(
@@ -703,6 +882,17 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
             ],
           ),
         ),
+        const SizedBox(height: 16),
+        if (bookingPassengers.isNotEmpty)
+          ElevatedButton.icon(
+            onPressed: _showSendToAllPassengersDialog,
+            icon: Icon(Icons.send_to_mobile),
+            label: Text('Send to All'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+          ),
 
         // Sent Notifications History
         Expanded(

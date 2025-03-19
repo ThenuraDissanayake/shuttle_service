@@ -4,9 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:shuttle_service/screens/admin/admin_settings.dart';
 import 'package:shuttle_service/screens/admin/adminnotificationpage.dart';
 import 'package:shuttle_service/screens/admin/driver_management.dart';
+import 'package:shuttle_service/screens/admin/passenger_complaint_management.dart';
 import 'package:shuttle_service/screens/admin/passenger_management.dart';
-import 'package:shuttle_service/screens/admin/review_complaints.dart';
-import 'package:shuttle_service/services/test.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -114,13 +113,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Action Buttons
                   _dashboardButton(
-                      context, Icons.report_problem, 'Review Complaints', () {
+                      context, Icons.report_problem, ' Passenger Complaints',
+                      () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const ReviewComplaintsPage()),
+                          builder: (context) =>
+                              const PassengerComplaintManagement()),
                     );
                   }),
                   _dashboardButton(
@@ -129,14 +129,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => const AdminNotificationPage()),
-                    );
-                  }),
-                  _dashboardButton(
-                      context, Icons.notification_add, 'Send Messages', () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => PaymentTestPage()),
                     );
                   }),
                 ],

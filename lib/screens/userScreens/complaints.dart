@@ -1,96 +1,366 @@
+import 'dart:io'; // Import necessary for File type
 import 'package:flutter/material.dart';
-import 'package:shuttle_service/screens/userScreens/make_complaints.dart';
-import 'complaint_history.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart'; // For image picking
+import 'package:file_picker/file_picker.dart'; // Optional, if you want to pick files other than images
 
-class PassengerComplaintPage extends StatelessWidget {
-  const PassengerComplaintPage({Key? key}) : super(key: key);
+class ComplaintManagementPage extends StatefulWidget {
+  const ComplaintManagementPage({Key? key}) : super(key: key);
+
+  @override
+  State<ComplaintManagementPage> createState() =>
+      _ComplaintManagementPageState();
+}
+
+class _ComplaintManagementPageState extends State<ComplaintManagementPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Complaints'),
-        centerTitle: true,
-        // backgroundColor: Colors.green,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Title
-              const Text(
-                'Complaint Options',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  // color: Colors.red,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-
-              // "Make a Complaint" Button
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ComplaintSubmissionPage(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Make a Complaint',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // "Complaint History" Button
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ComplaintHistoryPage(),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Complaint History',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'Submit Complaint', icon: Icon(Icons.create)),
+            Tab(text: 'Complaint History', icon: Icon(Icons.history)),
+          ],
         ),
       ),
+      body: TabBarView(
+        controller: _tabController,
+        children: const [
+          ComplaintSubmissionTab(),
+          ComplaintHistoryTab(),
+        ],
+      ),
+    );
+  }
+}
+
+// Original ComplaintSubmissionPage converted to a Tab
+class ComplaintSubmissionTab extends StatefulWidget {
+  const ComplaintSubmissionTab({Key? key}) : super(key: key);
+
+  @override
+  State<ComplaintSubmissionTab> createState() => _ComplaintSubmissionTabState();
+}
+
+class _ComplaintSubmissionTabState extends State<ComplaintSubmissionTab> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _complaintTypeController =
+      TextEditingController();
+  final TextEditingController _driverInfoController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  File? _attachment; // Store file picked by user
+
+  String? _fullName;
+  String? _email;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPassengerDetails(); // Fetch the passenger details on initialization
+  }
+
+  Future<void> _fetchPassengerDetails() async {
+    try {
+      final currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser != null) {
+        final docSnapshot = await FirebaseFirestore.instance
+            .collection('passengers')
+            .doc(currentUser.uid)
+            .get();
+
+        if (docSnapshot.exists) {
+          setState(() {
+            _fullName = docSnapshot.data()?['name'] ?? '';
+            _email = docSnapshot.data()?['email'] ?? '';
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching passenger details: $e');
+    }
+  }
+
+  // Function to pick image or file
+  Future<void> _pickAttachment() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _attachment = File(pickedFile.path);
+      });
+    }
+    // Optionally, you can use FilePicker for file attachments
+    // final result = await FilePicker.platform.pickFiles();
+    // if (result != null) {
+    //   setState(() {
+    //     _attachment = File(result.files.single.path!);
+    //   });
+    // }
+  }
+
+  Future<void> _submitComplaint() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final complaintData = {
+          'fullName': _fullName,
+          'email': _email,
+          'complaintType': _complaintTypeController.text,
+          'driverInfo': _driverInfoController.text,
+          'description': _descriptionController.text,
+          'attachment': _attachment != null ? 'Uploaded File Path' : null,
+          'createdAt': FieldValue.serverTimestamp(),
+          'status': 'Pending',
+        };
+
+        await FirebaseFirestore.instance
+            .collection('complaints')
+            .add(complaintData);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Your complaint has been submitted successfully!')),
+        );
+
+        // Clear the form
+        _complaintTypeController.clear();
+        _driverInfoController.clear();
+        _descriptionController.clear();
+        setState(() {
+          _attachment = null;
+        });
+      } catch (e) {
+        debugPrint('Error submitting complaint: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Failed to submit your complaint. Please try again later.')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _fullName == null || _email == null
+        ? const Center(child: CircularProgressIndicator())
+        : Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Help us improve by sharing your concerns. We value your feedback.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 20),
+                    // Full Name (Auto-filled)
+                    TextFormField(
+                      enabled: false,
+                      initialValue: _fullName,
+                      decoration: const InputDecoration(
+                        labelText: 'Full Name',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Email (Auto-filled)
+                    TextFormField(
+                      enabled: false,
+                      initialValue: _email,
+                      decoration: const InputDecoration(
+                        labelText: 'Email Address',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Complaint Type Dropdown
+                    DropdownButtonFormField<String>(
+                      value: _complaintTypeController.text.isEmpty
+                          ? null
+                          : _complaintTypeController.text,
+                      items: const [
+                        DropdownMenuItem(
+                            value: 'Driver Issue', child: Text('Driver Issue')),
+                        DropdownMenuItem(
+                            value: 'App Issue', child: Text('App Issue')),
+                        DropdownMenuItem(
+                            value: 'Shuttle Service Issue',
+                            child: Text('Shuttle Service Issue')),
+                        DropdownMenuItem(value: 'Other', child: Text('Other')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _complaintTypeController.text = value!;
+                        });
+                      },
+                      decoration: const InputDecoration(
+                        labelText: 'Complaint Type',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) => value == null
+                          ? 'Please select a complaint type'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    // Driver/Vehicle Information (Optional)
+                    TextFormField(
+                      controller: _driverInfoController,
+                      decoration: const InputDecoration(
+                        labelText: 'Driver/Vehicle Information (Optional)',
+                        hintText: 'e.g., Driver John or Shuttle ID 12345',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Description of Complaint
+                    TextFormField(
+                      controller: _descriptionController,
+                      maxLines: 5,
+                      decoration: const InputDecoration(
+                        labelText: 'Describe your complaint in detail',
+                        hintText: 'Write about what happened...',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please provide a description of your complaint.';
+                        } else if (value.length < 50) {
+                          return 'Your description must be at least 50 characters.';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    // Attachment (Optional)
+                    ElevatedButton(
+                      onPressed: _pickAttachment,
+                      child:
+                          const Text('Upload Supporting Documents or Images'),
+                    ),
+                    const SizedBox(height: 32),
+                    // Submit Button
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: _submitComplaint,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 40, vertical: 15),
+                          backgroundColor: Colors.green,
+                        ),
+                        child: const Text('Submit Complaint'),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Footer Note
+                    const Center(
+                      child: Text(
+                        'Your complaint will be reviewed by the admin within 24-48 hours. '
+                        'You may be contacted for further details if needed.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+  }
+}
+
+// Original ComplaintHistoryPage converted to a Tab
+class ComplaintHistoryTab extends StatelessWidget {
+  const ComplaintHistoryTab({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    // Check if user is logged in
+    if (user == null) {
+      return const Center(
+        child: Text("You need to be logged in to view complaints."),
+      );
+    }
+    final userEmail = user.email;
+    return StreamBuilder<QuerySnapshot>(
+      // Query the complaints collection and filter by email
+      stream: FirebaseFirestore.instance
+          .collection('complaints')
+          .where('email',
+              isEqualTo: userEmail) // Filter based on the current user's email
+          .snapshots(),
+      builder: (context, snapshot) {
+        // Handle loading state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        // Handle errors
+        if (snapshot.hasError) {
+          return Center(child: Text('Something went wrong: ${snapshot.error}'));
+        }
+        // If no data is found
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('No complaints found.'));
+        }
+        final complaints = snapshot.data!.docs;
+        return ListView.builder(
+          itemCount: complaints.length,
+          itemBuilder: (context, index) {
+            final complaint = complaints[index].data() as Map<String, dynamic>;
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: ListTile(
+                title: Text(
+                  complaint['complaintType'] ?? 'Unknown Type',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        "Description: ${complaint['description'] ?? 'No description'}"),
+                    Text(
+                        "Admin Reply: ${complaint['adminReply'] ?? 'No reply yet'}"),
+                    Text("Status: ${complaint['status'] ?? 'Pending'}"),
+                  ],
+                ),
+                trailing: Icon(
+                  complaint['status'] == 'Resolved'
+                      ? Icons.check_circle
+                      : Icons.hourglass_empty,
+                  color: complaint['status'] == 'Resolved'
+                      ? Colors.green
+                      : Colors.orange,
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

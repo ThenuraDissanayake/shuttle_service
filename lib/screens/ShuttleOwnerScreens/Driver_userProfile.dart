@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
-import 'package:shuttle_service/screens/ShuttleOwnerScreens/bank_details.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/driver_payment_setup.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/drivernotificationpage.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/qr_scanner.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/update_driver_location.dart';
 import 'package:shuttle_service/screens/welcome.dart';
 import 'driver_pro.dart';
@@ -125,14 +126,13 @@ class UserProfilePage extends StatelessWidget {
                         ),
                         _buildProfileOption(
                           icon: Icons.payment,
-                          title: 'Bank Details',
+                          title: 'Payment Details',
                           onTap: () {
                             // Navigate to bank details screen
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) =>
-                                      const DriverPaymentDetailsPage()),
+                                  builder: (context) => DriverPaymentSetup()),
                             );
                             // Navigate to booking preferences screen
                           },
@@ -162,8 +162,8 @@ class UserProfilePage extends StatelessWidget {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_customize),
-            label: 'Real time updates',
+            icon: Icon(Icons.qr_code_scanner),
+            label: 'ShuttlePassScan',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
@@ -188,7 +188,7 @@ class UserProfilePage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const DriverLocationPage(),
+                  builder: (context) => const DriverScanQRPage(),
                 ),
               );
               break;

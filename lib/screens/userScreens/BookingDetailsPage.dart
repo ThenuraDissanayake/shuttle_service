@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:payhere_mobilesdk_flutter/payhere_mobilesdk_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 class BookingDetailsPage extends StatefulWidget {
   final String journeyType; // Morning or Evening
@@ -57,12 +59,9 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
     }
   }
 
-  Future<void> _requestBooking() async {
-    setState(() {
-      isLoading = true;
-    });
-
+  Future<void> _processPayment() async {
     try {
+      // Get driver's merchant details
       final driverSnapshot = await FirebaseFirestore.instance
           .collection('drivers')
           .where('driver_name', isEqualTo: widget.driverName)
@@ -70,15 +69,14 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
           .get();
 
       if (driverSnapshot.docs.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Driver not found.')),
-        );
-        return;
+        throw Exception('Driver merchant details not found');
       }
 
       final driverData = driverSnapshot.docs.first.data();
+      final merchantId = driverData['merchantId'];
       final int capacity = driverData['shuttle']['capacity'] ?? 0;
 
+      // Check capacity before proceeding with payment
       final bookingRef = FirebaseFirestore.instance
           .collection('driver_bookings')
           .doc(widget.driverName);
@@ -97,56 +95,142 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
       int bookingsForMorning = bookingData['bookings_for_morning'] ?? 0;
       int bookingsForEvening = bookingData['bookings_for_evening'] ?? 0;
 
+      // Check capacity limits
       if (widget.journeyType == 'Morning Journey' &&
           bookingsForMorning >= capacity) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Morning journey is fully booked.')),
-        );
+        throw Exception('Morning journey is fully booked.');
       } else if (widget.journeyType == 'Evening Journey' &&
           bookingsForEvening >= capacity) {
+        throw Exception('Evening journey is fully booked.');
+      }
+
+      if (merchantId == null) {
+        throw Exception('Driver has not configured payment details');
+      }
+
+      final orderId = const Uuid().v4();
+
+      Map paymentObject = {
+        "sandbox": true,
+        "merchant_id": merchantId,
+        "merchant_secret": driverData['merchantSecret'],
+        "notify_url": "http://sample.com/notify",
+        "order_id": orderId,
+        "items": "${widget.journeyType} Shuttle Service",
+        "amount": widget.price,
+        "currency": "LKR",
+        "first_name": passengerName,
+        "last_name": "",
+        "email": FirebaseAuth.instance.currentUser?.email ?? "",
+        "phone": widget.phone,
+        "address": "",
+        "city": "",
+        "country": "Sri Lanka",
+      };
+
+      PayHere.startPayment(
+        paymentObject,
+        (paymentId) async {
+          try {
+            // Update booking count after successful payment
+            await bookingRef.update({
+              'bookings_for_morning': widget.journeyType == 'Morning Journey'
+                  ? bookingsForMorning + 1
+                  : bookingsForMorning,
+              'bookings_for_evening': widget.journeyType == 'Evening Journey'
+                  ? bookingsForEvening + 1
+                  : bookingsForEvening,
+            });
+
+            await _completeBooking(orderId, paymentId);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('Payment successful & booking confirmed!')),
+              );
+              Navigator.pop(context);
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error updating booking: $e')),
+              );
+            }
+          }
+        },
+        (error) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Payment failed: $error')),
+            );
+          }
+        },
+        () {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Payment cancelled')),
+            );
+          }
+        },
+      );
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Evening journey is fully booked.')),
+          SnackBar(content: Text('Error: $e')),
         );
+      }
+    }
+  }
+
+  Future<void> _completeBooking(String orderId, String paymentId) async {
+    // Set status and booking state based on payment method
+    final String bookingStatus =
+        _selectedPaymentMethod == 'Cash' ? 'Pending' : 'Accepted';
+    final String myBooking =
+        _selectedPaymentMethod == 'Cash' ? 'pending' : 'ongoing';
+
+    await FirebaseFirestore.instance.collection('bookings').add({
+      'journeyType': widget.journeyType,
+      'price': widget.price,
+      'paymentMethod': _selectedPaymentMethod,
+      'status': bookingStatus,
+      'passengerName': passengerName,
+      'driverName': widget.driverName,
+      'orderId': orderId,
+      'paymentId': paymentId,
+      'my_booking': myBooking,
+      'bookingDateTime': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> _requestBooking() async {
+    setState(() => isLoading = true);
+
+    try {
+      if (_selectedPaymentMethod == 'Card Payment') {
+        await _processPayment();
       } else {
-        await bookingRef.update({
-          'bookings_for_morning': widget.journeyType == 'Morning Journey'
-              ? bookingsForMorning + 1
-              : bookingsForMorning,
-          'bookings_for_evening': widget.journeyType == 'Evening Journey'
-              ? bookingsForEvening + 1
-              : bookingsForEvening,
-        });
-
-        // In the _requestBooking method, update only the FirebaseFirestore.instance.collection('bookings').add({ ... }) part:
-
-        await FirebaseFirestore.instance.collection('bookings').add({
-          'journeyType': widget.journeyType,
-          'price': widget.price,
-          'paymentMethod': _selectedPaymentMethod,
-          'status': 'Pending',
-          'passengerName': passengerName,
-          'driverName': widget.driverName,
-          // 'phone': widget.phone,
-          'my_booking': 'pending',
-          'bookingDateTime':
-              FieldValue.serverTimestamp(), // Add server timestamp
-          // 'localBookingDateTime':
-          //     DateTime.now().toIso8601String(), // Add local device timestamp
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Booking request sent successfully!')),
-        );
-        Navigator.pop(context);
+        // Existing cash payment logic
+        await _completeBooking('cash-${const Uuid().v4()}', 'cash');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text(
+                    'Booking request submitted successfully. Awaiting driver confirmation.')),
+          );
+          Navigator.pop(context);
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to request booking: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to process booking: $e')),
+        );
+      }
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
@@ -258,7 +342,7 @@ class _BookingDetailsPageState extends State<BookingDetailsPage> {
                           ),
                         ),
                         child: const Text(
-                          'Request Booking',
+                          ' Reserve ',
                           style: TextStyle(
                             fontSize: 18,
                             color: Colors.white,

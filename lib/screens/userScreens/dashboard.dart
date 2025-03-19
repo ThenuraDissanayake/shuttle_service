@@ -5,7 +5,7 @@ import 'package:shuttle_service/screens/userScreens/complaints.dart';
 import 'package:shuttle_service/screens/userScreens/favouritepages.dart';
 import 'package:shuttle_service/screens/userScreens/my_bookings.dart';
 import 'package:shuttle_service/screens/userScreens/passengernotiificationpage.dart';
-import 'package:shuttle_service/screens/userScreens/special_requsets_main.dart';
+import 'package:shuttle_service/screens/userScreens/special_shuttle.dart';
 import 'seatreservation.dart';
 import 'userProfile.dart';
 
@@ -194,7 +194,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const SpecialRequsetsMain(),
+                          builder: (context) => const SpecialShuttlePage(),
                         ),
                       );
                     },
@@ -207,7 +207,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const PassengerComplaintPage(),
+                          builder: (context) => const ComplaintManagementPage(),
                         ),
                       );
                     },

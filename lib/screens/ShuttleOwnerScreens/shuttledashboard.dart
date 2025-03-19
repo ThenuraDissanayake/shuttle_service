@@ -383,11 +383,55 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                   const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
+                      'Transport Service Requests',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Column(
+                      children: [
+                        _DashCard(
+                          icon: Icons.event_seat,
+                          title: 'Pending Cash Bookings',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const BookingRequestsPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        _DashCard(
+                          icon: Icons.emoji_people,
+                          title: 'Special Shuttle Requests',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const SpecialRequestsPage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
                       'Shuttle Operations',
                       style:
                           TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
                   ),
+                  const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
@@ -401,44 +445,6 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                               MaterialPageRoute(
                                 builder: (context) =>
                                     const ShuttleManagementPage(),
-                              ),
-                            );
-                          },
-                        ),
-                        _DashCard(
-                          icon: Icons.emoji_people,
-                          title: 'Requests',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const BookingRequestsPage(),
-                              ),
-                            );
-                          },
-                        ),
-                        _DashCard(
-                          icon: Icons.event,
-                          title: 'Requests for Special Shuttles',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const SpecialRequestsPage(),
-                              ),
-                            );
-                          },
-                        ),
-                        _DashCard(
-                          icon: Icons.qr_code_scanner,
-                          title: 'ShuttlePassScan',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const DriverScanQRPage(),
                               ),
                             );
                           },
@@ -477,8 +483,8 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_customize),
-            label: 'Real time updates',
+            icon: Icon(Icons.qr_code_scanner),
+            label: 'ShuttlePassScan',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
@@ -503,7 +509,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const DriverLocationPage(),
+                  builder: (context) => const DriverScanQRPage(),
                 ),
               );
               break;
@@ -556,7 +562,7 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
               ),
               const SizedBox(height: 5),
               Text(
-                'Pending Requests: $pendingRequests',
+                'Cash Booking Requests: $pendingRequests',
                 style: const TextStyle(fontSize: 16),
               ),
             ],
