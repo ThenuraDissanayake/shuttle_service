@@ -82,16 +82,16 @@ class _DriverPaymentSetupState extends State<DriverPaymentSetup> {
       final hashedSecret = _hashSecret(_merchantSecretController.text);
 
       final driverData = {
-        'name': _nameController.text,
+        // 'name': _nameController.text,
         'merchantId': _merchantIdController.text,
         'merchantSecret': hashedSecret, // Store hashed secret
-        'email': _emailController.text,
-        'phone': _phoneController.text,
-        'address': _addressController.text,
-        'city': _cityController.text,
+        // 'email': _emailController.text,
+        // 'phone': _phoneController.text,
+        // 'address': _addressController.text,
+        // 'city': _cityController.text,
         'country': 'Sri Lanka',
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
+        // 'createdAt': FieldValue.serverTimestamp(),
+        // 'updatedAt': FieldValue.serverTimestamp(),
       };
 
       // Store in Firestore

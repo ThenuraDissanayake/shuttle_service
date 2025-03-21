@@ -424,6 +424,14 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
                                 context, '/update-driver-location');
                           },
                         ),
+                        const SizedBox(height: 20),
+                        _DashCard(
+                          icon: Icons.report,
+                          title: 'Make a Complaint',
+                          onTap: () {
+                            Navigator.pushNamed(context, '/driver-complaints');
+                          },
+                        ),
                       ],
                     ),
                   ),

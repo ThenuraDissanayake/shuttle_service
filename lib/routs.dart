@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/Driver_userProfile.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/booking_requests_management.dart';
+import 'package:shuttle_service/screens/ShuttleOwnerScreens/driver_complaints.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/driver_details.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/driver_payment_setup.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/drivernotificationpage.dart';
@@ -66,6 +67,7 @@ class Routes {
       '/shuttle-management': (context) => const ShuttleManagementPage(),
       '/update-driver-location': (context) => const DriverLocationPage(),
       '/view-special-shuttle': (context) => const SpecialRequestsPage(),
+      '/driver-complaints': (context) => const DriverComplaintManagementPage(),
     };
   }
 }
