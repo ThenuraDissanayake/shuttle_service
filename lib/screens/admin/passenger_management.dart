@@ -79,7 +79,7 @@ class _AdminPassengerManagementState extends State<AdminPassengerManagement> {
               Text("👤 Name: ${passenger['name'] ?? 'N/A'}"),
               Text("📧 Email: ${passenger['email'] ?? 'N/A'}"),
               Text("📞 Phone: ${passenger['phone'] ?? 'N/A'}"),
-              Text("🎫 Bookings: ${passenger['bookingCount'] ?? '0'}"),
+              // Text("🎫 Bookings: ${passenger['bookingCount'] ?? '0'}"),
               Text(
                   "🚫 Status: ${passenger['isBanned'] == true ? 'Banned' : 'Active'}"),
             ],

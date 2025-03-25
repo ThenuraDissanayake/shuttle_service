@@ -38,9 +38,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           .get();
 
       // Fetch total complaints (assuming "complaints" collection exists)
+      // QuerySnapshot complaintsSnapshot = await FirebaseFirestore.instance
+      //     .collection('complaints')
+      //     .where('status', isEqualTo: 'Pending') // Filter by status
+      //     .get();
+
       QuerySnapshot complaintsSnapshot = await FirebaseFirestore.instance
           .collection('complaints')
-          .where('status', isEqualTo: 'Pending') // Filter by status
+          .where('status', isEqualTo: 'Pending')
+          .get();
+
+      QuerySnapshot driverComplaintsSnapshot = await FirebaseFirestore.instance
+          .collection('driver_complaints')
+          .where('status', isEqualTo: 'Pending')
           .get();
 
       QuerySnapshot passengerSnapshot =
@@ -49,7 +59,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       setState(() {
         totalDrivers = driverSnapshot.size;
         pendingApprovals = pendingSnapshot.size;
-        totalComplaints = complaintsSnapshot.size;
+        totalComplaints =
+            complaintsSnapshot.size + driverComplaintsSnapshot.size;
         totalPassengers = passengerSnapshot.size;
       });
     } catch (e) {
@@ -109,13 +120,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   const SizedBox(height: 20),
 
                   _dashboardButton(
+                      context, Icons.notification_add, 'Send Messages', () {
+                    Navigator.pushNamed(context, '/admin-notifications');
+                  }),
+                  _dashboardButton(
                       context, Icons.report_problem, ' Passenger Complaints',
                       () {
                     Navigator.pushNamed(context, '/passenger-complaints');
                   }),
                   _dashboardButton(
-                      context, Icons.notification_add, 'Send Messages', () {
-                    Navigator.pushNamed(context, '/admin-notifications');
+                      context, Icons.report_problem, ' Driver Complaints', () {
+                    Navigator.pushNamed(context, '/driver-complaints-admin');
                   }),
                 ],
               ),

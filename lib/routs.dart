@@ -13,6 +13,7 @@ import 'package:shuttle_service/screens/ShuttleOwnerScreens/view_special_request
 import 'package:shuttle_service/screens/admin/admin_dashboard.dart';
 import 'package:shuttle_service/screens/admin/admin_settings.dart';
 import 'package:shuttle_service/screens/admin/adminnotificationpage.dart';
+import 'package:shuttle_service/screens/admin/driver_complaint_management.dart';
 import 'package:shuttle_service/screens/admin/driver_management.dart';
 import 'package:shuttle_service/screens/admin/passenger_complaint_management.dart';
 import 'package:shuttle_service/screens/admin/passenger_management.dart';
@@ -43,6 +44,8 @@ class Routes {
       '/passenger-complaints': (context) =>
           const PassengerComplaintManagement(),
       '/passenger-management': (context) => const AdminPassengerManagement(),
+      '/driver-complaints-admin': (context) =>
+          const DriverComplaintManagementAdmin(),
 
       //passenger
       '/passenger-dashboard': (context) => const DashboardScreen(),

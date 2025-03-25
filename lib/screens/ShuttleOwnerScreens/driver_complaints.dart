@@ -1,9 +1,6 @@
-import 'dart:io'; // Import necessary for File type
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart'; // For file uploads
-import 'package:image_picker/image_picker.dart'; // For image picking
 
 class DriverComplaintManagementPage extends StatefulWidget {
   const DriverComplaintManagementPage({Key? key}) : super(key: key);
@@ -70,8 +67,7 @@ class _DriverComplaintSubmissionTabState
       TextEditingController();
   final TextEditingController _vehicleInfoController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  File? _attachment; // Store file picked by user
-  bool _isSubmitting = false; // Track submission state
+  bool _isSubmitting = false;
 
   String? _driverName;
   String? _email;
@@ -79,7 +75,15 @@ class _DriverComplaintSubmissionTabState
   @override
   void initState() {
     super.initState();
-    _fetchDriverDetails(); // Fetch the driver details on initialization
+    _fetchDriverDetails();
+  }
+
+  @override
+  void dispose() {
+    _complaintTypeController.dispose();
+    _vehicleInfoController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchDriverDetails() async {
@@ -114,51 +118,18 @@ class _DriverComplaintSubmissionTabState
     }
   }
 
-  // Function to pick image or file
-  Future<void> _pickAttachment() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _attachment = File(pickedFile.path);
-      });
-    }
-  }
-
-  // Function to upload file to Firebase Storage
-  Future<String?> _uploadFile(File file) async {
-    try {
-      final storageRef = FirebaseStorage.instance.ref().child(
-          'complaint_attachments/${DateTime.now().millisecondsSinceEpoch}');
-      final uploadTask = storageRef.putFile(file);
-      final snapshot = await uploadTask.whenComplete(() {});
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-      return downloadUrl;
-    } catch (e) {
-      debugPrint('Error uploading file: $e');
-      return null;
-    }
-  }
-
   Future<void> _submitComplaint() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isSubmitting = true;
       });
       try {
-        String? attachmentUrl;
-        if (_attachment != null) {
-          attachmentUrl = await _uploadFile(_attachment!);
-        }
-
         final complaintData = {
           'driverName': _driverName,
           'email': _email,
           'complaintType': _complaintTypeController.text,
           'vehicleInfo': _vehicleInfoController.text,
           'description': _descriptionController.text,
-          'attachment': attachmentUrl,
           'createdAt': FieldValue.serverTimestamp(),
           'status': 'Pending',
         };
@@ -176,9 +147,6 @@ class _DriverComplaintSubmissionTabState
         _complaintTypeController.clear();
         _vehicleInfoController.clear();
         _descriptionController.clear();
-        setState(() {
-          _attachment = null;
-        });
       } catch (e) {
         debugPrint('Error submitting complaint: $e');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -291,27 +259,6 @@ class _DriverComplaintSubmissionTabState
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
-                    // Attachment (Optional)
-                    ElevatedButton(
-                      onPressed: _pickAttachment,
-                      child:
-                          const Text('Upload Supporting Documents or Images'),
-                    ),
-                    if (_attachment != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Column(
-                          children: [
-                            if (_attachment!.path.endsWith('.jpg') ||
-                                _attachment!.path.endsWith('.png'))
-                              Image.file(_attachment!,
-                                  height: 100, width: 100, fit: BoxFit.cover),
-                            Text(
-                                'File selected: ${_attachment!.path.split('/').last}'),
-                          ],
-                        ),
-                      ),
                     const SizedBox(height: 32),
                     // Submit Button
                     Center(

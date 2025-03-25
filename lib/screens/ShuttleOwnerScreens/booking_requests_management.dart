@@ -88,7 +88,7 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
     }
   }
 
-// Handle the booking request (Accept or Reject)
+  // Handle the booking request (Accept or Reject)
   Future<void> _handleBooking(String bookingId, String status) async {
     try {
       // If the status is "Accepted", also update the 'my_booking' field to 'ongoing'
@@ -96,6 +96,31 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
 
       if (status == 'Accepted') {
         updateData['my_booking'] = 'ongoing'; // Set 'my_booking' to 'ongoing'
+
+        // Fetch the booking details to get journey type and driver name
+        DocumentSnapshot bookingDoc = await FirebaseFirestore.instance
+            .collection('bookings')
+            .doc(bookingId)
+            .get();
+
+        String journeyType = bookingDoc['journeyType'];
+        String driverName = bookingDoc['driverName'];
+
+        // Reference to the driver's booking count document
+        DocumentReference bookingCountRef = FirebaseFirestore.instance
+            .collection('driver_bookings')
+            .doc(driverName);
+
+        // Fetch current booking counts
+        DocumentSnapshot bookingCountDoc = await bookingCountRef.get();
+
+        // Determine which field to increment based on journey type
+        String countField = journeyType == 'Morning Journey'
+            ? 'bookings_for_morning'
+            : 'bookings_for_evening';
+
+        // Update the booking count
+        await bookingCountRef.update({countField: FieldValue.increment(1)});
       }
 
       if (status == 'Rejected') {
@@ -159,9 +184,7 @@ class _BookingRequestsPageState extends State<BookingRequestsPage> {
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             Text('Journey Type: ${request['journeyType']}'),
-                            // Text('Price: LKR ${request['price']}'),
                             Text('Payment Method: ${request['paymentMethod']}'),
-                            // Text('Phone: ${request['phone']}'),
                             Text(
                               "Booking Date / Time: ${request['bookingDateTime'] != null ? DateFormat('dd MMM yyyy, hh:mm a').format((request['bookingDateTime'] as Timestamp).toDate()) : 'N/A'}",
                             ),

@@ -1,9 +1,6 @@
-import 'dart:io'; // Import necessary for File type
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:image_picker/image_picker.dart'; // For image picking
-import 'package:file_picker/file_picker.dart'; // Optional, if you want to pick files other than images
 
 class ComplaintManagementPage extends StatefulWidget {
   const ComplaintManagementPage({Key? key}) : super(key: key);
@@ -53,7 +50,7 @@ class _ComplaintManagementPageState extends State<ComplaintManagementPage>
   }
 }
 
-// Original ComplaintSubmissionPage converted to a Tab
+// Complaint Submission Tab
 class ComplaintSubmissionTab extends StatefulWidget {
   const ComplaintSubmissionTab({Key? key}) : super(key: key);
 
@@ -67,7 +64,7 @@ class _ComplaintSubmissionTabState extends State<ComplaintSubmissionTab> {
       TextEditingController();
   final TextEditingController _driverInfoController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  File? _attachment; // Store file picked by user
+  bool _isSubmitting = false;
 
   String? _fullName;
   String? _email;
@@ -75,7 +72,15 @@ class _ComplaintSubmissionTabState extends State<ComplaintSubmissionTab> {
   @override
   void initState() {
     super.initState();
-    _fetchPassengerDetails(); // Fetch the passenger details on initialization
+    _fetchPassengerDetails();
+  }
+
+  @override
+  void dispose() {
+    _complaintTypeController.dispose();
+    _driverInfoController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchPassengerDetails() async {
@@ -100,27 +105,12 @@ class _ComplaintSubmissionTabState extends State<ComplaintSubmissionTab> {
     }
   }
 
-  // Function to pick image or file
-  Future<void> _pickAttachment() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _attachment = File(pickedFile.path);
-      });
-    }
-    // Optionally, you can use FilePicker for file attachments
-    // final result = await FilePicker.platform.pickFiles();
-    // if (result != null) {
-    //   setState(() {
-    //     _attachment = File(result.files.single.path!);
-    //   });
-    // }
-  }
-
   Future<void> _submitComplaint() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isSubmitting = true;
+      });
+
       try {
         final complaintData = {
           'fullName': _fullName,
@@ -128,7 +118,6 @@ class _ComplaintSubmissionTabState extends State<ComplaintSubmissionTab> {
           'complaintType': _complaintTypeController.text,
           'driverInfo': _driverInfoController.text,
           'description': _descriptionController.text,
-          'attachment': _attachment != null ? 'Uploaded File Path' : null,
           'createdAt': FieldValue.serverTimestamp(),
           'status': 'Pending',
         };
@@ -146,9 +135,6 @@ class _ComplaintSubmissionTabState extends State<ComplaintSubmissionTab> {
         _complaintTypeController.clear();
         _driverInfoController.clear();
         _descriptionController.clear();
-        setState(() {
-          _attachment = null;
-        });
       } catch (e) {
         debugPrint('Error submitting complaint: $e');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -156,6 +142,10 @@ class _ComplaintSubmissionTabState extends State<ComplaintSubmissionTab> {
               content: Text(
                   'Failed to submit your complaint. Please try again later.')),
         );
+      } finally {
+        setState(() {
+          _isSubmitting = false;
+        });
       }
     }
   }
@@ -254,24 +244,20 @@ class _ComplaintSubmissionTabState extends State<ComplaintSubmissionTab> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
-                    // Attachment (Optional)
-                    ElevatedButton(
-                      onPressed: _pickAttachment,
-                      child:
-                          const Text('Upload Supporting Documents or Images'),
-                    ),
                     const SizedBox(height: 32),
                     // Submit Button
                     Center(
                       child: ElevatedButton(
-                        onPressed: _submitComplaint,
+                        onPressed: _isSubmitting ? null : _submitComplaint,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 40, vertical: 15),
                           backgroundColor: Colors.green,
                         ),
-                        child: const Text('Submit Complaint'),
+                        child: _isSubmitting
+                            ? const CircularProgressIndicator(
+                                color: Colors.white)
+                            : const Text('Submit Complaint'),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -292,7 +278,7 @@ class _ComplaintSubmissionTabState extends State<ComplaintSubmissionTab> {
   }
 }
 
-// Original ComplaintHistoryPage converted to a Tab
+// Complaint History Tab with improved sorting and display
 class ComplaintHistoryTab extends StatelessWidget {
   const ComplaintHistoryTab({Key? key}) : super(key: key);
 
@@ -307,11 +293,9 @@ class ComplaintHistoryTab extends StatelessWidget {
     }
     final userEmail = user.email;
     return StreamBuilder<QuerySnapshot>(
-      // Query the complaints collection and filter by email
       stream: FirebaseFirestore.instance
           .collection('complaints')
-          .where('email',
-              isEqualTo: userEmail) // Filter based on the current user's email
+          .where('email', isEqualTo: userEmail)
           .snapshots(),
       builder: (context, snapshot) {
         // Handle loading state
@@ -326,41 +310,121 @@ class ComplaintHistoryTab extends StatelessWidget {
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(child: Text('No complaints found.'));
         }
-        final complaints = snapshot.data!.docs;
+
+        // Get all complaints
+        final List<DocumentSnapshot> complaints = snapshot.data!.docs;
+
+        // Sort the complaints by createdAt manually (client-side)
+        complaints.sort((a, b) {
+          final aData = a.data() as Map<String, dynamic>;
+          final bData = b.data() as Map<String, dynamic>;
+          final aTimestamp = aData['createdAt'] as Timestamp?;
+          final bTimestamp = bData['createdAt'] as Timestamp?;
+
+          // Handle null timestamps - put them at the end
+          if (aTimestamp == null) return 1;
+          if (bTimestamp == null) return -1;
+
+          // Sort in descending order (newest first)
+          return bTimestamp.compareTo(aTimestamp);
+        });
+
         return ListView.builder(
           itemCount: complaints.length,
           itemBuilder: (context, index) {
             final complaint = complaints[index].data() as Map<String, dynamic>;
+            // Format timestamp if available
+            String formattedDate = 'Date not available';
+            if (complaint['createdAt'] != null) {
+              final timestamp = complaint['createdAt'] as Timestamp;
+              final date = timestamp.toDate();
+              formattedDate = '${date.day}/${date.month}/${date.year}';
+            }
+
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              child: ListTile(
+              child: ExpansionTile(
                 title: Text(
                   complaint['complaintType'] ?? 'Unknown Type',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        "Description: ${complaint['description'] ?? 'No description'}"),
-                    Text(
-                        "Admin Reply: ${complaint['adminReply'] ?? 'No reply yet'}"),
-                    Text("Status: ${complaint['status'] ?? 'Pending'}"),
-                  ],
+                subtitle: Text(
+                  "Status: ${complaint['status'] ?? 'Pending'} • $formattedDate",
+                  style: TextStyle(
+                    color: _getStatusColor(complaint['status']),
+                  ),
                 ),
                 trailing: Icon(
-                  complaint['status'] == 'Resolved'
-                      ? Icons.check_circle
-                      : Icons.hourglass_empty,
-                  color: complaint['status'] == 'Resolved'
-                      ? Colors.green
-                      : Colors.orange,
+                  _getStatusIcon(complaint['status']),
+                  color: _getStatusColor(complaint['status']),
                 ),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Description:",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(complaint['description'] ?? 'No description'),
+                        const SizedBox(height: 8),
+                        if (complaint['driverInfo'] != null &&
+                            complaint['driverInfo'].toString().isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Driver/Vehicle Info:",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(complaint['driverInfo']),
+                              const SizedBox(height: 8),
+                            ],
+                          ),
+                        const Text(
+                          "Admin Reply:",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(complaint['adminReply'] ?? 'No reply yet'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             );
           },
         );
       },
     );
+  }
+
+  Color _getStatusColor(String? status) {
+    switch (status) {
+      case 'Resolved':
+        return Colors.green;
+      case 'In Progress':
+        return Colors.blue;
+      case 'Rejected':
+        return Colors.red;
+      case 'Pending':
+      default:
+        return Colors.orange;
+    }
+  }
+
+  IconData _getStatusIcon(String? status) {
+    switch (status) {
+      case 'Resolved':
+        return Icons.check_circle;
+      case 'In Progress':
+        return Icons.autorenew;
+      case 'Rejected':
+        return Icons.cancel;
+      case 'Pending':
+      default:
+        return Icons.hourglass_empty;
+    }
   }
 }
