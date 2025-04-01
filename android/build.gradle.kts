@@ -2,6 +2,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven("https://repo.repsy.io/mvn/payhere/payhere-mobilesdk-android/")
+    
     }
 }
 

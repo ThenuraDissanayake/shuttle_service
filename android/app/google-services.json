@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "942698148270",
+    "project_id": "shuttle-4e208",
+    "storage_bucket": "shuttle-4e208.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:942698148270:android:6480fc22477a4cdba9183f",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZBXtky-uCFyCzwPnHu7KLuHeBVKqx7rA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:942698148270:android:4c62f4a2d182c811a9183f",
+        "android_client_info": {
+          "package_name": "com.example.shuttle_service"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZBXtky-uCFyCzwPnHu7KLuHeBVKqx7rA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
