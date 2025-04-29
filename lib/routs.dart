@@ -10,6 +10,7 @@ import 'package:shuttle_service/screens/ShuttleOwnerScreens/shuttleManagement.da
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/shuttledashboard.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/update_driver_location.dart';
 import 'package:shuttle_service/screens/ShuttleOwnerScreens/view_special_requests.dart';
+import 'package:shuttle_service/screens/admin/add_admins.dart';
 import 'package:shuttle_service/screens/admin/admin_dashboard.dart';
 import 'package:shuttle_service/screens/admin/admin_settings.dart';
 import 'package:shuttle_service/screens/admin/adminnotificationpage.dart';
@@ -17,6 +18,7 @@ import 'package:shuttle_service/screens/admin/driver_complaint_management.dart';
 import 'package:shuttle_service/screens/admin/driver_management.dart';
 import 'package:shuttle_service/screens/admin/passenger_complaint_management.dart';
 import 'package:shuttle_service/screens/admin/passenger_management.dart';
+import 'package:shuttle_service/screens/forgot_password.dart';
 import 'package:shuttle_service/screens/login.dart';
 import 'package:shuttle_service/screens/registration.dart';
 import 'package:shuttle_service/screens/userScreens/complaints.dart';
@@ -24,7 +26,7 @@ import 'package:shuttle_service/screens/userScreens/dashboard.dart';
 import 'package:shuttle_service/screens/userScreens/favouritepages.dart';
 import 'package:shuttle_service/screens/userScreens/my_bookings.dart';
 import 'package:shuttle_service/screens/userScreens/passengernotiificationpage.dart';
-import 'package:shuttle_service/screens/userScreens/seatreservation.dart';
+import 'package:shuttle_service/screens/userScreens/find_shuttles.dart';
 import 'package:shuttle_service/screens/userScreens/special_shuttle.dart';
 import 'package:shuttle_service/screens/userScreens/userProfile.dart';
 import 'package:shuttle_service/screens/welcome.dart';
@@ -35,6 +37,7 @@ class Routes {
       '/': (context) => const WelcomeScreen(),
       '/login': (context) => const LoginScreen(),
       '/register': (context) => const DynamicRegistrationScreen(),
+      '/forgot-password': (context) => const ForgotPasswordScreen(),
 
       //admin
       '/admin-dashboard': (context) => const AdminDashboardScreen(),
@@ -46,6 +49,7 @@ class Routes {
       '/passenger-management': (context) => const AdminPassengerManagement(),
       '/driver-complaints-admin': (context) =>
           const DriverComplaintManagementAdmin(),
+      '/add-admin': (context) => const ManageAdminsPage(),
 
       //passenger
       '/passenger-dashboard': (context) => const DashboardScreen(),

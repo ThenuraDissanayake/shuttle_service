@@ -99,13 +99,13 @@ class DUserProfilePage extends StatelessWidget {
                             Navigator.pushNamed(context, '/driver-details');
                           },
                         ),
-                        _buildProfileOption(
-                          icon: Icons.lock,
-                          title: 'Change Password',
-                          onTap: () {
-                            // Navigate to change password screen
-                          },
-                        ),
+                        // _buildProfileOption(
+                        //   icon: Icons.lock,
+                        //   title: 'Change Password',
+                        //   onTap: () {
+                        //     // Navigate to change password screen
+                        //   },
+                        // ),
                         _buildProfileOption(
                           icon: Icons.payment,
                           title: 'Payment Details',

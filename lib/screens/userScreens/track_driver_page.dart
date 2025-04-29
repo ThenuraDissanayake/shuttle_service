@@ -20,11 +20,15 @@ class _TrackDriverPageState extends State<TrackDriverPage> {
   StreamSubscription<QuerySnapshot>? _locationSubscription;
   final Set<Marker> _markers = {};
   LatLng _defaultLocation = const LatLng(6.9271, 79.8612);
+  bool _isMapCreated = false;
 
   @override
   void initState() {
     super.initState();
-    _startTrackingDriver();
+    // Delay tracking until after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startTrackingDriver();
+    });
   }
 
   void _startTrackingDriver() {
@@ -46,22 +50,27 @@ class _TrackDriverPageState extends State<TrackDriverPage> {
             driverData['longitude'],
           );
 
-          setState(() {
-            _markers.clear();
-            _markers.add(
-              Marker(
-                markerId: const MarkerId('driverLocation'),
-                position: driverLocation,
-                infoWindow: InfoWindow(title: widget.driverName),
-                icon: BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueGreen),
-              ),
-            );
-          });
+          if (mounted) {
+            setState(() {
+              _markers.clear();
+              _markers.add(
+                Marker(
+                  markerId: const MarkerId('driverLocation'),
+                  position: driverLocation,
+                  infoWindow: InfoWindow(title: widget.driverName),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueGreen),
+                ),
+              );
+            });
 
-          _mapController?.animateCamera(
-            CameraUpdate.newLatLngZoom(driverLocation, 15),
-          );
+            // Only move camera if map controller is initialized
+            if (_isMapCreated && _mapController != null) {
+              _mapController?.animateCamera(
+                CameraUpdate.newLatLngZoom(driverLocation, 15),
+              );
+            }
+          }
         }
       }
     });
@@ -109,6 +118,15 @@ class _TrackDriverPageState extends State<TrackDriverPage> {
             );
           }
 
+          // If location is on and we have coordinates, set as initial position
+          if (driverData['latitude'] != null &&
+              driverData['longitude'] != null) {
+            _defaultLocation = LatLng(
+              driverData['latitude'],
+              driverData['longitude'],
+            );
+          }
+
           return GoogleMap(
             initialCameraPosition: CameraPosition(
               target: _defaultLocation,
@@ -117,6 +135,15 @@ class _TrackDriverPageState extends State<TrackDriverPage> {
             markers: _markers,
             onMapCreated: (controller) {
               _mapController = controller;
+              _isMapCreated = true;
+
+              // If markers already exist when map is created, move camera
+              if (_markers.isNotEmpty) {
+                final firstMarker = _markers.first;
+                _mapController?.animateCamera(
+                  CameraUpdate.newLatLngZoom(firstMarker.position, 15),
+                );
+              }
             },
             myLocationEnabled: true,
             myLocationButtonEnabled: true,

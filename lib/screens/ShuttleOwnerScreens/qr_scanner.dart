@@ -39,19 +39,23 @@ class _DriverScanQRPageState extends State<DriverScanQRPage> {
     });
 
     try {
-      // Extract booking ID from QR code
-      RegExp regExp = RegExp(r'Booking ID: ([\w-]+)');
-      Match? match = regExp.firstMatch(qrData);
+      // Debug the QR content
+      print('QR Data: $qrData');
 
-      if (match == null || match.groupCount < 1) {
+      // Extract booking ID from QR code
+      RegExp bookingIdRegExp = RegExp(r'Booking ID: ([\w-]+)');
+      Match? bookingIdMatch = bookingIdRegExp.firstMatch(qrData);
+
+      if (bookingIdMatch == null || bookingIdMatch.groupCount < 1) {
         setState(() {
-          _processStatus = 'Invalid QR code format';
+          _processStatus = 'Invalid QR code format: Missing booking ID';
           _isProcessing = false;
         });
         return;
       }
 
-      String bookingId = match.group(1)!;
+      String bookingId = bookingIdMatch.group(1)!;
+      print('Extracted Booking ID: $bookingId');
 
       // Get current driver information
       User? currentDriver = FirebaseAuth.instance.currentUser;
@@ -77,7 +81,9 @@ class _DriverScanQRPageState extends State<DriverScanQRPage> {
         return;
       }
 
-      String driverName = driverDoc.get('name') as String;
+      // Use driver_name from drivers collection
+      String driverName = driverDoc.get('driver_name') as String;
+      print('Current Driver Name: $driverName');
 
       // Fetch the booking document
       DocumentSnapshot bookingDoc = await FirebaseFirestore.instance
@@ -95,7 +101,9 @@ class _DriverScanQRPageState extends State<DriverScanQRPage> {
 
       // Verify this is the correct driver for this booking
       String assignedDriverName = bookingDoc.get('driverName') as String;
-      if (assignedDriverName != driverName) {
+      print('Database Driver Name: $assignedDriverName');
+
+      if (assignedDriverName.trim() != driverName.trim()) {
         setState(() {
           _processStatus = 'You are not assigned to this booking';
           _isProcessing = false;
@@ -141,6 +149,7 @@ class _DriverScanQRPageState extends State<DriverScanQRPage> {
         }
       });
     } catch (e) {
+      print('Error processing QR code: $e');
       setState(() {
         _processStatus = 'Error: $e';
         _isProcessing = false;

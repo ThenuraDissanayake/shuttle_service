@@ -102,6 +102,10 @@ class AdminSettingsPage extends StatelessWidget {
                           icon: Icons.person,
                           title: 'Add or Remove Admins',
                           onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              '/add-admin',
+                            );
                             // Navigate to edit personal details screen
                           },
                         ),

@@ -98,27 +98,27 @@ class UserProfilePage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
                       children: [
-                        _buildProfileOption(
-                          icon: Icons.person,
-                          title: 'Edit Personal Details',
-                          onTap: () {
-                            // Navigate to edit personal details screen
-                          },
-                        ),
-                        _buildProfileOption(
-                          icon: Icons.lock,
-                          title: 'Change Password',
-                          onTap: () {
-                            // Navigate to change password screen
-                          },
-                        ),
-                        _buildProfileOption(
-                          icon: Icons.payment,
-                          title: 'Paymeent Methords',
-                          onTap: () {
-                            // Navigate to booking preferences screen
-                          },
-                        ),
+                        // _buildProfileOption(
+                        //   icon: Icons.person,
+                        //   title: 'Edit Personal Details',
+                        //   onTap: () {
+                        //     // Navigate to edit personal details screen
+                        //   },
+                        // ),
+                        // _buildProfileOption(
+                        //   icon: Icons.lock,
+                        //   title: 'Change Password',
+                        //   onTap: () {
+                        //     // Navigate to change password screen
+                        //   },
+                        // ),
+                        // _buildProfileOption(
+                        //   icon: Icons.payment,
+                        //   title: 'Paymeent Methords',
+                        //   onTap: () {
+                        //     // Navigate to booking preferences screen
+                        //   },
+                        // ),
                         _buildProfileOption(
                           icon: Icons.logout,
                           title: 'Logout',

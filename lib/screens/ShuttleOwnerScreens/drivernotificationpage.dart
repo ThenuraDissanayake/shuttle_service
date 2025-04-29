@@ -17,7 +17,7 @@ class _DriverNotificationPageState extends State<DriverNotificationPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Driver Notifications'),
+        title: Text('My Notifications'),
         bottom: TabBar(
           controller: _tabController,
           tabs: [

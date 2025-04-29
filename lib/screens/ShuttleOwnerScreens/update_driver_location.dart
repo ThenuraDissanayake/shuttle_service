@@ -16,11 +16,36 @@ class _DriverLocationPageState extends State<DriverLocationPage> {
   StreamSubscription<Position>? _locationSubscription;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final currentUser = FirebaseAuth.instance.currentUser;
+  String? driverName;
 
   @override
   void initState() {
     super.initState();
     _checkInitialLocationStatus();
+    _getDriverName();
+  }
+
+  Future<void> _getDriverName() async {
+    if (currentUser != null) {
+      final driverDoc =
+          await _firestore.collection('drivers').doc(currentUser!.uid).get();
+
+      if (driverDoc.exists) {
+        // Get existing driver_name if available
+        driverName = driverDoc.data()?['driver_name'];
+      }
+
+      // If driver_name is not set, use displayName or a default
+      if (driverName == null || driverName!.isEmpty) {
+        driverName = currentUser!.displayName ??
+            'Driver ${currentUser!.uid.substring(0, 5)}';
+
+        // Save the name to the driver document
+        await _firestore.collection('drivers').doc(currentUser!.uid).set({
+          'driver_name': driverName,
+        }, SetOptions(merge: true));
+      }
+    }
   }
 
   Future<void> _checkInitialLocationStatus() async {
@@ -93,6 +118,7 @@ class _DriverLocationPageState extends State<DriverLocationPage> {
       await _firestore.collection('drivers').doc(currentUser!.uid).update({
         'isLocationOn': isLocationOn,
         'lastUpdated': FieldValue.serverTimestamp(),
+        'driver_name': driverName, // Add driver_name here
       });
 
       if (isLocationOn) {
@@ -110,6 +136,7 @@ class _DriverLocationPageState extends State<DriverLocationPage> {
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
         distanceFilter: 10,
+        timeLimit: Duration(seconds: 10), // Update at most every 10 seconds
       ),
     ).listen((Position position) async {
       if (currentUser != null) {
@@ -122,6 +149,7 @@ class _DriverLocationPageState extends State<DriverLocationPage> {
           'longitude': position.longitude,
           'lastUpdated': FieldValue.serverTimestamp(),
           'isLocationOn': true,
+          'driver_name': driverName, // Add driver_name to each location update
         });
       }
     });
@@ -167,6 +195,12 @@ class _DriverLocationPageState extends State<DriverLocationPage> {
                   : 'Location Sharing is OFF',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 10),
+            if (driverName != null)
+              Text(
+                'Name: $driverName',
+                style: const TextStyle(fontSize: 16),
+              ),
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: _toggleLocation,

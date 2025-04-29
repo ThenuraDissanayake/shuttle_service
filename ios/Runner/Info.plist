@@ -28,6 +28,13 @@
 	<array>
 		<string>payhere</string>
 	</array>
+	<key>NSBonjourServices</key>
+	<array>
+    	<string>_dartVmService._tcp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app needs access to the local network to enable debugging and hot reload functionality</string>
+
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>

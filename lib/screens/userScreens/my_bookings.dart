@@ -121,6 +121,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
   Widget _buildQRCode(Map<String, dynamic> booking) {
     final qrData = 'Booking ID: ${booking['id']}\n'
         'Passenger: ${booking['passengerName'] ?? 'N/A'}\n'
+        'Driver: ${booking['driverName'] ?? 'N/A'}\n'
         'Journey: ${booking['journeyType'] ?? 'N/A'}';
 
     return Container(
