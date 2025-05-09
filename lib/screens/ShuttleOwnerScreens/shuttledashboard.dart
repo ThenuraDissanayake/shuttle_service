@@ -198,291 +198,302 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
       });
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Hi, $_userName',
-                style: const TextStyle(fontSize: 15),
-              ),
-              Text(
-                '$_greeting!',
-                style: const TextStyle(fontSize: 15),
-              ),
-            ],
+    return WillPopScope(
+      onWillPop: () async {
+        // Return false to disable back button
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Align(
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Hi, $_userName',
+                  style: const TextStyle(fontSize: 15),
+                ),
+                Text(
+                  '$_greeting!',
+                  style: const TextStyle(fontSize: 15),
+                ),
+              ],
+            ),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.account_circle),
+              onPressed: () {
+                Navigator.pushNamed(context, '/driver-profile');
+              },
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle),
-            onPressed: () {
-              Navigator.pushNamed(context, '/driver-profile');
-            },
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/background.png'),
+              fit: BoxFit.cover,
+            ),
           ),
-        ],
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/background.png'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Container(
-          color: Colors.white.withOpacity(0.9),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 5),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Shuttle Overview',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  ListView(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    children: [
-                      FutureBuilder<String?>(
-                        future: _getDriverName(),
-                        builder: (context, driverSnapshot) {
-                          if (driverSnapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          }
-
-                          if (!driverSnapshot.hasData ||
-                              driverSnapshot.data == null) {
-                            return const Text('Driver not found');
-                          }
-
-                          return FutureBuilder<Map<String, dynamic>?>(
-                            future: _fetchDriverBookings(driverSnapshot.data!),
-                            builder: (context, bookingSnapshot) {
-                              if (bookingSnapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              }
-
-                              if (bookingSnapshot.hasError) {
-                                return Text(
-                                    'Error fetching bookings: ${bookingSnapshot.error}');
-                              }
-
-                              if (!bookingSnapshot.hasData ||
-                                  bookingSnapshot.data == null) {
-                                return const Text(
-                                    'No bookings data available.');
-                              }
-
-                              final bookings = bookingSnapshot.data!;
-                              final morningBookings =
-                                  bookings['bookings_for_morning'] ?? 0;
-                              final eveningBookings =
-                                  bookings['bookings_for_evening'] ?? 0;
-
-                              return Column(
-                                children: [
-                                  FutureBuilder<Map<String, int>>(
-                                    future: _fetchPendingRequests(),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return const Center(
-                                            child: CircularProgressIndicator());
-                                      }
-
-                                      if (snapshot.hasError) {
-                                        return Text(
-                                            'Error fetching pending requests: ${snapshot.error}');
-                                      }
-
-                                      if (!snapshot.hasData) {
-                                        return const Text(
-                                            'No pending requests data available.');
-                                      }
-
-                                      final morningRequests =
-                                          snapshot.data!['morning'] ?? 0;
-
-                                      return _buildReservationCard(
-                                        'Morning Journey',
-                                        '$morningBookings seats reserved',
-                                        '$morningRequests',
-                                      );
-                                    },
-                                  ),
-                                  FutureBuilder<Map<String, int>>(
-                                    future: _fetchPendingRequests(),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return const Center(
-                                            child: CircularProgressIndicator());
-                                      }
-
-                                      if (snapshot.hasError) {
-                                        return Text(
-                                            'Error fetching pending requests: ${snapshot.error}');
-                                      }
-
-                                      if (!snapshot.hasData) {
-                                        return const Text(
-                                            'No pending requests data available.');
-                                      }
-
-                                      final eveningRequests =
-                                          snapshot.data!['evening'] ?? 0;
-
-                                      return _buildReservationCard(
-                                        'Evening Journey',
-                                        '$eveningBookings seats reserved',
-                                        '$eveningRequests',
-                                      );
-                                    },
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
+          child: Container(
+            color: Colors.white.withOpacity(0.9),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 5),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Shuttle Overview',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Transport Service Requests',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Column(
+                    const SizedBox(height: 10),
+                    ListView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
                       children: [
-                        _DashCard(
-                          icon: Icons.event_seat,
-                          title: 'Pending Cash Bookings',
-                          onTap: () {
-                            Navigator.pushNamed(
-                                context, '/driver-booking-requests');
-                          },
-                        ),
-                        _DashCard(
-                          icon: Icons.emoji_people,
-                          title: 'Special Shuttle Requests',
-                          onTap: () {
-                            Navigator.pushNamed(
-                                context, '/view-special-shuttle');
+                        FutureBuilder<String?>(
+                          future: _getDriverName(),
+                          builder: (context, driverSnapshot) {
+                            if (driverSnapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+
+                            if (!driverSnapshot.hasData ||
+                                driverSnapshot.data == null) {
+                              return const Text('Driver not found');
+                            }
+
+                            return FutureBuilder<Map<String, dynamic>?>(
+                              future:
+                                  _fetchDriverBookings(driverSnapshot.data!),
+                              builder: (context, bookingSnapshot) {
+                                if (bookingSnapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const Center(
+                                      child: CircularProgressIndicator());
+                                }
+
+                                if (bookingSnapshot.hasError) {
+                                  return Text(
+                                      'Error fetching bookings: ${bookingSnapshot.error}');
+                                }
+
+                                if (!bookingSnapshot.hasData ||
+                                    bookingSnapshot.data == null) {
+                                  return const Text(
+                                      'No bookings data available.');
+                                }
+
+                                final bookings = bookingSnapshot.data!;
+                                final morningBookings =
+                                    bookings['bookings_for_morning'] ?? 0;
+                                final eveningBookings =
+                                    bookings['bookings_for_evening'] ?? 0;
+
+                                return Column(
+                                  children: [
+                                    FutureBuilder<Map<String, int>>(
+                                      future: _fetchPendingRequests(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return const Center(
+                                              child:
+                                                  CircularProgressIndicator());
+                                        }
+
+                                        if (snapshot.hasError) {
+                                          return Text(
+                                              'Error fetching pending requests: ${snapshot.error}');
+                                        }
+
+                                        if (!snapshot.hasData) {
+                                          return const Text(
+                                              'No pending requests data available.');
+                                        }
+
+                                        final morningRequests =
+                                            snapshot.data!['morning'] ?? 0;
+
+                                        return _buildReservationCard(
+                                          'Morning Journey',
+                                          '$morningBookings seats reserved',
+                                          '$morningRequests',
+                                        );
+                                      },
+                                    ),
+                                    FutureBuilder<Map<String, int>>(
+                                      future: _fetchPendingRequests(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return const Center(
+                                              child:
+                                                  CircularProgressIndicator());
+                                        }
+
+                                        if (snapshot.hasError) {
+                                          return Text(
+                                              'Error fetching pending requests: ${snapshot.error}');
+                                        }
+
+                                        if (!snapshot.hasData) {
+                                          return const Text(
+                                              'No pending requests data available.');
+                                        }
+
+                                        final eveningRequests =
+                                            snapshot.data!['evening'] ?? 0;
+
+                                        return _buildReservationCard(
+                                          'Evening Journey',
+                                          '$eveningBookings seats reserved',
+                                          '$eveningRequests',
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           },
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Shuttle Operations',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    const SizedBox(height: 30),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Transport Service Requests',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: Column(
-                      children: [
-                        _DashCard(
-                          icon: Icons.bus_alert,
-                          title: 'Shuttle status / Times',
-                          onTap: () {
-                            Navigator.pushNamed(context, '/shuttle-management');
-                          },
-                        ),
-                        _DashCard(
-                          icon: Icons.location_on,
-                          title: 'Share live Location',
-                          onTap: () {
-                            Navigator.pushNamed(
-                                context, '/update-driver-location');
-                          },
-                        ),
-                        const SizedBox(height: 20),
-                        _DashCard(
-                          icon: Icons.report,
-                          title: 'Make a Complaint',
-                          onTap: () {
-                            Navigator.pushNamed(context, '/driver-complaints');
-                          },
-                        ),
-                      ],
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        children: [
+                          _DashCard(
+                            icon: Icons.event_seat,
+                            title: 'Pending Cash Bookings',
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, '/driver-booking-requests');
+                            },
+                          ),
+                          _DashCard(
+                            icon: Icons.emoji_people,
+                            title: 'Special Shuttle Requests',
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, '/view-special-shuttle');
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
+                    const SizedBox(height: 10),
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Shuttle Operations',
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Column(
+                        children: [
+                          _DashCard(
+                            icon: Icons.bus_alert,
+                            title: 'Shuttle status / Times',
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, '/shuttle-management');
+                            },
+                          ),
+                          _DashCard(
+                            icon: Icons.location_on,
+                            title: 'Share live Location',
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, '/update-driver-location');
+                            },
+                          ),
+                          const SizedBox(height: 20),
+                          _DashCard(
+                            icon: Icons.report,
+                            title: 'Make a Complaint',
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, '/driver-complaints');
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-        unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
-        currentIndex: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner),
-            label: 'ShuttlePassScan',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle_rounded),
-            label: 'Account',
-          ),
-        ],
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushNamed(context, '/driver-dashboard');
-              break;
-            case 1:
-              Navigator.pushNamed(context, '/qr-scanner');
-              break;
-            case 2:
-              Navigator.pushNamed(context, '/driver-notification');
-              break;
-            case 3:
-              Navigator.pushNamed(context, '/driver-profile');
-              break;
-          }
-        },
-        selectedLabelStyle: const TextStyle(fontSize: 12),
-        unselectedLabelStyle: const TextStyle(fontSize: 12),
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
+          unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
+          currentIndex: 0,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.qr_code_scanner),
+              label: 'ShuttlePassScan',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications),
+              label: 'Notifications',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle_rounded),
+              label: 'Account',
+            ),
+          ],
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                Navigator.pushNamed(context, '/driver-dashboard');
+                break;
+              case 1:
+                Navigator.pushNamed(context, '/qr-scanner');
+                break;
+              case 2:
+                Navigator.pushNamed(context, '/driver-notification');
+                break;
+              case 3:
+                Navigator.pushNamed(context, '/driver-profile');
+                break;
+            }
+          },
+          selectedLabelStyle: const TextStyle(fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontSize: 12),
+        ),
       ),
     );
   }

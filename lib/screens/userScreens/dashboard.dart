@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -61,173 +62,179 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        // backgroundColor: Colors.green,
-        title: Align(
-          alignment: Alignment.centerLeft, // Align title to the left
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start, // Align text to the left
-            children: [
-              Text(
-                'Hi, $_userName',
-                style: const TextStyle(
-                    // color: Colors.white,
-                    fontSize: 15), // Set text color to white
-              ),
-              // const Text(
-              //   'Welcome',
-              //   style: TextStyle(
-              //       // color: Colors.white,
-              //       fontSize: 18), // Set text color to white
-              // ),
-              Text(
-                '$_greeting!',
-                style: const TextStyle(fontSize: 15),
-              ),
-            ],
+    return WillPopScope(
+      onWillPop: () async {
+        // Return false to disable back button
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          // backgroundColor: Colors.green,
+          title: Align(
+            alignment: Alignment.centerLeft, // Align title to the left
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start, // Align text to the left
+              children: [
+                Text(
+                  'Hi, $_userName',
+                  style: const TextStyle(
+                      // color: Colors.white,
+                      fontSize: 15), // Set text color to white
+                ),
+                // const Text(
+                //   'Welcome',
+                //   style: TextStyle(
+                //       // color: Colors.white,
+                //       fontSize: 18), // Set text color to white
+                // ),
+                Text(
+                  '$_greeting!',
+                  style: const TextStyle(fontSize: 15),
+                ),
+              ],
+            ),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.account_circle),
+              onPressed: () {
+                // Navigate to User Profile screen
+                Navigator.pushNamed(context, '/passenger-profile');
+              },
+            ),
+          ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle),
-            onPressed: () {
-              // Navigate to User Profile screen
-              Navigator.pushNamed(context, '/passenger-profile');
-            },
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/background.png'),
+              fit: BoxFit.cover,
+            ),
           ),
-        ],
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/background.png'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Container(
-          color: Colors.white.withOpacity(0.9),
-          child: ListView(
-            // Using ListView to make the content scrollable
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              // UniShuttle logo with bus icon
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.directions_bus,
-                      color: Colors.green,
-                      size: 50,
-                    ),
-                    SizedBox(
-                        height: 10), // Adds space between the icon and text
-                    Text(
-                      'UniShuttle',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+          child: Container(
+            color: Colors.white.withOpacity(0.9),
+            child: ListView(
+              // Using ListView to make the content scrollable
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                // UniShuttle logo with bus icon
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.directions_bus,
+                        color: Colors.green,
+                        size: 50,
                       ),
+                      SizedBox(
+                          height: 10), // Adds space between the icon and text
+                      Text(
+                        'UniShuttle',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Align(
+                  alignment: Alignment.center, // Aligns the text to the left
+                  child: Text(
+                    '“Seat reservations for tomorrow \n will be available from 8.00 PM”',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                ),
+
+                // Buttons for various actions
+                Column(
+                  children: [
+                    _DashCard01(
+                      icon: Icons.event_seat,
+                      title: '      Reserve a Shuttle',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/find-active-shuttles');
+                        // Navigate to shuttle reservation page
+                      },
+                    ),
+                    _DashCard(
+                      icon: Icons.bookmark,
+                      title: 'My Shuttle List',
+                      onTap: () {
+                        // Navigate to my shuttle list page
+                        Navigator.pushNamed(context, '/favorite-shuttles');
+                      },
+                    ),
+                    _DashCard(
+                      icon: Icons.emoji_people,
+                      title: 'Request for Special Shuttle',
+                      onTap: () {
+                        // Navigate to special shuttle request page
+                        Navigator.pushNamed(context, '/special-shuttle');
+                      },
+                    ),
+                    _DashCard(
+                      icon: Icons.report,
+                      title: 'Make a complaint',
+                      onTap: () {
+                        // Navigate to complaint page
+                        Navigator.pushNamed(
+                            context, '/passenger-make-complaints');
+                      },
                     ),
                   ],
                 ),
-              ),
-
-              const Align(
-                alignment: Alignment.center, // Aligns the text to the left
-                child: Text(
-                  '“Seat reservations for tomorrow \n will be available from 8.00 PM”',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-              ),
-
-              // Buttons for various actions
-              Column(
-                children: [
-                  _DashCard01(
-                    icon: Icons.event_seat,
-                    title: '      Reserve a Shuttle',
-                    onTap: () {
-                      Navigator.pushNamed(context, '/find-active-shuttles');
-                      // Navigate to shuttle reservation page
-                    },
-                  ),
-                  _DashCard(
-                    icon: Icons.bookmark,
-                    title: 'My Shuttle List',
-                    onTap: () {
-                      // Navigate to my shuttle list page
-                      Navigator.pushNamed(context, '/favorite-shuttles');
-                    },
-                  ),
-                  _DashCard(
-                    icon: Icons.emoji_people,
-                    title: 'Request for Special Shuttle',
-                    onTap: () {
-                      // Navigate to special shuttle request page
-                      Navigator.pushNamed(context, '/special-shuttle');
-                    },
-                  ),
-                  _DashCard(
-                    icon: Icons.report,
-                    title: 'Make a complaint',
-                    onTap: () {
-                      // Navigate to complaint page
-                      Navigator.pushNamed(
-                          context, '/passenger-make-complaints');
-                    },
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        // backgroundColor: const Color.fromARGB(255, 184, 245, 186),
-        selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-        unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
-        currentIndex: 0, // Default active tab
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.event_seat),
-            label: 'My Bookings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle_rounded),
-            label: 'Account',
-          ),
-        ],
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushNamed(context, '/passenger-dashboard');
-              break;
-            case 1:
-              Navigator.pushNamed(context, '/my-bookings');
-              break;
-            case 2:
-              Navigator.pushNamed(context, '/passenger-notifications');
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          // backgroundColor: const Color.fromARGB(255, 184, 245, 186),
+          selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
+          unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
+          currentIndex: 0, // Default active tab
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.event_seat),
+              label: 'My Bookings',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications),
+              label: 'Notifications',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle_rounded),
+              label: 'Account',
+            ),
+          ],
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                Navigator.pushNamed(context, '/passenger-dashboard');
+                break;
+              case 1:
+                Navigator.pushNamed(context, '/my-bookings');
+                break;
+              case 2:
+                Navigator.pushNamed(context, '/passenger-notifications');
 
-              break;
-            case 3:
-              Navigator.pushNamed(context, '/passenger-profile');
-              break;
-          }
-        },
+                break;
+              case 3:
+                Navigator.pushNamed(context, '/passenger-profile');
+                break;
+            }
+          },
+        ),
       ),
     );
   }

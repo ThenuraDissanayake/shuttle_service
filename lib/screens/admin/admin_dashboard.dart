@@ -70,105 +70,112 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.blue[800],
-        title: const Text(
-          'Admin Dashboard',
-          style: TextStyle(color: Colors.white, fontSize: 18),
-        ),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/background.png'),
-            fit: BoxFit.cover,
+    return WillPopScope(
+      onWillPop: () async {
+        // Return false to disable back button
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.blue[800],
+          title: const Text(
+            'Admin Dashboard',
+            style: TextStyle(color: Colors.white, fontSize: 18),
           ),
         ),
-        child: Container(
-          color: Colors.white.withOpacity(0.9),
-          child: RefreshIndicator(
-            onRefresh: () async {
-              _fetchData(); // Manual refresh on pull-down
-            },
-            child: SingleChildScrollView(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-              child: Column(
-                children: [
-                  // Overview Cards
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _overviewCard('Total Drivers', Icons.directions_bus,
-                          Colors.red, totalDrivers),
-                      _overviewCard('Pending Driver Approvals', Icons.pending,
-                          Colors.orange, pendingApprovals),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _overviewCard('Total Complaints', Icons.report,
-                          Colors.purple, totalComplaints),
-                      _overviewCard('Total Passengers', Icons.people,
-                          Colors.blue, totalPassengers),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/background.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Container(
+            color: Colors.white.withOpacity(0.9),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                _fetchData(); // Manual refresh on pull-down
+              },
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0, vertical: 10.0),
+                child: Column(
+                  children: [
+                    // Overview Cards
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _overviewCard('Total Drivers', Icons.directions_bus,
+                            Colors.red, totalDrivers),
+                        _overviewCard('Pending Driver Approvals', Icons.pending,
+                            Colors.orange, pendingApprovals),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _overviewCard('Total Complaints', Icons.report,
+                            Colors.purple, totalComplaints),
+                        _overviewCard('Total Passengers', Icons.people,
+                            Colors.blue, totalPassengers),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
 
-                  _dashboardButton(
-                      context, Icons.notification_add, 'Send Messages', () {
-                    Navigator.pushNamed(context, '/admin-notifications');
-                  }),
-                  _dashboardButton(
-                      context, Icons.report_problem, ' Passenger Complaints',
-                      () {
-                    Navigator.pushNamed(context, '/passenger-complaints');
-                  }),
-                  _dashboardButton(
-                      context, Icons.report_problem, ' Driver Complaints', () {
-                    Navigator.pushNamed(context, '/driver-complaints-admin');
-                  }),
-                ],
+                    _dashboardButton(
+                        context, Icons.notification_add, 'Send Messages', () {
+                      Navigator.pushNamed(context, '/admin-notifications');
+                    }),
+                    _dashboardButton(
+                        context, Icons.report_problem, ' Passenger Complaints',
+                        () {
+                      Navigator.pushNamed(context, '/passenger-complaints');
+                    }),
+                    _dashboardButton(
+                        context, Icons.report_problem, ' Driver Complaints',
+                        () {
+                      Navigator.pushNamed(context, '/driver-complaints-admin');
+                    }),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.blue[800],
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.white,
-        currentIndex: _selectedIndex,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.directions_bus), label: 'Drivers'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.people), label: 'Passengers'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.settings), label: 'Settings'),
-        ],
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushNamed(context, '/admin-dashboard');
-              break;
-            case 1:
-              Navigator.pushNamed(context, '/driver-management');
-              break;
-            case 2:
-              Navigator.pushNamed(context, '/passenger-management');
-              break;
-            case 3:
-              Navigator.pushNamed(context, '/admin-settings');
-              break;
-          }
-        },
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.blue[800],
+          selectedItemColor: Colors.black,
+          unselectedItemColor: Colors.white,
+          currentIndex: _selectedIndex,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.directions_bus), label: 'Drivers'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.people), label: 'Passengers'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.settings), label: 'Settings'),
+          ],
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                Navigator.pushNamed(context, '/admin-dashboard');
+                break;
+              case 1:
+                Navigator.pushNamed(context, '/driver-management');
+                break;
+              case 2:
+                Navigator.pushNamed(context, '/passenger-management');
+                break;
+              case 3:
+                Navigator.pushNamed(context, '/admin-settings');
+                break;
+            }
+          },
+        ),
       ),
     );
   }
