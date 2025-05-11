@@ -224,7 +224,15 @@ class _OwnerDashboardPageState extends State<OwnerDashboardPage> {
           ),
           actions: [
             IconButton(
+              icon: const Icon(Icons.location_on),
+              tooltip: 'Update Location',
+              onPressed: () {
+                Navigator.pushNamed(context, '/update-driver-location');
+              },
+            ),
+            IconButton(
               icon: const Icon(Icons.account_circle),
+              tooltip: 'Driver Profile',
               onPressed: () {
                 Navigator.pushNamed(context, '/driver-profile');
               },
