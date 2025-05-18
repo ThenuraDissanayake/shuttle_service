@@ -122,6 +122,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
     final qrData = 'Booking ID: ${booking['id']}\n'
         'Passenger: ${booking['passengerName'] ?? 'N/A'}\n'
         'Driver: ${booking['driverName'] ?? 'N/A'}\n'
+        'Payment Type: ${booking['paymentMethod'] ?? 'N/A'}\n'
         'Journey: ${booking['journeyType'] ?? 'N/A'}';
 
     return Container(

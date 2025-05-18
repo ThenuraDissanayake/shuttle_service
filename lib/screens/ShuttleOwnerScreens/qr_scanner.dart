@@ -121,7 +121,8 @@ class _DriverScanQRPageState extends State<DriverScanQRPage> {
         return;
       }
 
-      // Update booking status to 'past'
+      // Check payment method and update booking status to 'past'
+      String paymentMethod = bookingDoc.get('paymentMethod') as String;
       await FirebaseFirestore.instance
           .collection('bookings')
           .doc(bookingId)
@@ -134,13 +135,15 @@ class _DriverScanQRPageState extends State<DriverScanQRPage> {
       HapticFeedback.heavyImpact();
 
       setState(() {
-        _processStatus = 'Booking marked as completed!';
+        _processStatus = paymentMethod == 'Cash'
+            ? 'Booking completed! Please collect cash payment.'
+            : 'Booking marked as completed!';
         _isProcessing = false;
         _isSuccess = true;
       });
 
-      // Return to scan mode after delay
-      Future.delayed(const Duration(seconds: 3), () {
+      // Return to scan mode after delay (increased to 5 seconds for cash payments)
+      Future.delayed(Duration(seconds: paymentMethod == 'Cash' ? 5 : 3), () {
         if (mounted) {
           setState(() {
             _hasScanned = false;
