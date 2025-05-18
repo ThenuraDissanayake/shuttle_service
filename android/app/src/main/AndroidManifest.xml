@@ -16,7 +16,7 @@ xmlns:tools="http://schemas.android.com/tools">
 
     
     <application
-        android:label="shuttle_service"
+        android:label="UniShuttle"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         tools:replace="android:label">
