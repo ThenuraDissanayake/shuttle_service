@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shuttle_service/screens/userScreens/track_driver_page.dart';
+import 'dart:async';
 
 class MyBookingsPage extends StatefulWidget {
   const MyBookingsPage({Key? key}) : super(key: key);
@@ -15,6 +16,7 @@ class MyBookingsPage extends StatefulWidget {
 class _MyBookingsPageState extends State<MyBookingsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  Timer? _refreshTimer;
   bool isLoading = true;
   List<Map<String, dynamic>> pendingBookings = [];
   List<Map<String, dynamic>> ongoingBookings = [];
@@ -26,6 +28,11 @@ class _MyBookingsPageState extends State<MyBookingsPage>
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _fetchBookings();
+
+    // Set up timer to refresh every 30 seconds
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      _fetchBookings();
+    });
   }
 
   Future<void> _fetchBookings() async {
@@ -388,6 +395,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _tabController.dispose();
     super.dispose();
   }

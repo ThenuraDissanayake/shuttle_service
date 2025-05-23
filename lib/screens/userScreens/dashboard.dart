@@ -120,19 +120,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.all(16.0),
               children: [
                 // UniShuttle logo with bus icon
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.directions_bus,
-                        color: Colors.green,
-                        size: 50,
+                      Image.asset(
+                        'assets/images/bus_icon.png',
+                        width: 50,
+                        height: 50,
                       ),
-                      SizedBox(
+                      const SizedBox(
                           height: 10), // Adds space between the icon and text
-                      Text(
+                      const Text(
                         'UniShuttle',
                         style: TextStyle(
                           fontSize: 28,

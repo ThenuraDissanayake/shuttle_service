@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -13,15 +14,52 @@ class SpecialShuttlePage extends StatefulWidget {
 class _SpecialShuttlePageState extends State<SpecialShuttlePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  Timer? _cleanupTimer;
+
+  Future<void> _cleanupExpiredRequests() async {
+    try {
+      // Get all pending requests
+      QuerySnapshot pendingRequests = await FirebaseFirestore.instance
+          .collection('special_shuttle_requests')
+          .where('status', isEqualTo: 'pending')
+          .get();
+
+      // Get current time
+      DateTime now = DateTime.now();
+
+      // Check each pending request
+      for (var doc in pendingRequests.docs) {
+        Timestamp? tripTimestamp = doc.get('tripDateTime') as Timestamp?;
+        if (tripTimestamp != null) {
+          DateTime tripDate = tripTimestamp.toDate();
+          if (tripDate.isBefore(now)) {
+            // Update status to 'expired' if trip date has passed
+            await doc.reference.update({'status': 'expired'});
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error cleaning up expired requests: $e');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+
+    // Run cleanup immediately
+    _cleanupExpiredRequests();
+
+    // Set up periodic cleanup every 15 minutes
+    _cleanupTimer = Timer.periodic(const Duration(minutes: 15), (timer) {
+      _cleanupExpiredRequests();
+    });
   }
 
   @override
   void dispose() {
+    _cleanupTimer?.cancel();
     _tabController.dispose();
     super.dispose();
   }
