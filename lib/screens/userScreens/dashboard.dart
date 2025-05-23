@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shuttle_service/screens/userScreens/complaints.dart';
-import 'package:shuttle_service/screens/userScreens/favouritepages.dart';
-import 'package:shuttle_service/screens/userScreens/my_bookings.dart';
-import 'package:shuttle_service/screens/userScreens/special_requsets_main.dart';
-import 'seatreservation.dart';
-import 'userProfile.dart';
+import 'package:flutter/services.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -17,11 +12,26 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   String _userName = "User"; // Default name if no data is found
+  String _greeting = "";
 
   @override
   void initState() {
     super.initState();
     _fetchUserName();
+    _updateGreeting();
+  }
+
+  void _updateGreeting() {
+    var hour = DateTime.now().hour;
+    setState(() {
+      if (hour < 12) {
+        _greeting = 'Good Morning';
+      } else if (hour < 17) {
+        _greeting = 'Good Afternoon';
+      } else {
+        _greeting = 'Good Evening';
+      }
+    });
   }
 
   // Fetch the user's name from Firestore
@@ -52,307 +62,182 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.green,
-        title: Align(
-          alignment: Alignment.centerLeft, // Align title to the left
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start, // Align text to the left
-            children: [
-              Text(
-                'Hi, $_userName',
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15), // Set text color to white
-              ),
-              const Text(
-                'Welcome',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18), // Set text color to white
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle),
-            onPressed: () {
-              // Navigate to User Profile screen
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // UniShuttle logo with bus icon
-
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20.0),
+    return WillPopScope(
+      onWillPop: () async {
+        // Return false to disable back button
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          // backgroundColor: Colors.green,
+          title: Align(
+            alignment: Alignment.centerLeft, // Align title to the left
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start, // Align text to the left
               children: [
-                Icon(
-                  Icons.directions_bus,
-                  color: Colors.green,
-                  size: 50,
-                ),
-                SizedBox(height: 10), // Adds space between the icon and text
                 Text(
-                  'UniShuttle',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                  'Hi, $_userName',
+                  style: const TextStyle(
+                      // color: Colors.white,
+                      fontSize: 15), // Set text color to white
+                ),
+                // const Text(
+                //   'Welcome',
+                //   style: TextStyle(
+                //       // color: Colors.white,
+                //       fontSize: 18), // Set text color to white
+                // ),
+                Text(
+                  '$_greeting!',
+                  style: const TextStyle(fontSize: 15),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.account_circle),
+              onPressed: () {
+                // Navigate to User Profile screen
+                Navigator.pushNamed(context, '/passenger-profile');
+              },
+            ),
+          ],
+        ),
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/images/background.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Container(
+            color: Colors.white.withOpacity(0.9),
+            child: ListView(
+              // Using ListView to make the content scrollable
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                // UniShuttle logo with bus icon
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.directions_bus,
+                        color: Colors.green,
+                        size: 50,
+                      ),
+                      SizedBox(
+                          height: 10), // Adds space between the icon and text
+                      Text(
+                        'UniShuttle',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
 
-          const Spacer(),
+                const Align(
+                  alignment: Alignment.center, // Aligns the text to the left
+                  child: Text(
+                    '“Seat reservations for tomorrow \n will be available from 8.00 PM”',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+                ),
 
-          // Buttons for various actions
-          // Expanded(
-          //   child: GridView.count(
-          //     crossAxisCount: 2,
-          //     padding: const EdgeInsets.all(20.0),
-          //     crossAxisSpacing: 5.0,
-          //     mainAxisSpacing: 5.0,
-          //     children: [
-          //       _buildDashboardButton(context, Icons.event_seat, 'Book a Seat',
-          //           () {
-          //         Navigator.push(
-          //           context,
-          //           MaterialPageRoute(
-          //             builder: (context) => const SeatReservationPage(),
-          //           ),
-          //         );
-          //       }),
-          //       _buildDashboardButton(context, Icons.map, 'Track Shuttle', () {
-          //         Navigator.push(
-          //           context,
-          //           MaterialPageRoute(
-          //             builder: (context) => const ShuttleTrackingMapPage(),
-          //           ),
-          //         );
-          //       }),
-          //       _buildDashboardButton(
-          //           context, Icons.notifications, 'Notifications', () {
-          //         Navigator.push(
-          //           context,
-          //           MaterialPageRoute(
-          //             builder: (context) => const NotificationsPage(),
-          //           ),
-          //         );
-          //       }),
-          //       _buildDashboardButton(context, Icons.history, 'My Bookings',
-          //           () {
-          //         Navigator.push(
-          //           context,
-          //           MaterialPageRoute(
-          //             builder: (context) => const BookingHistoryPage(),
-          //           ),
-          //         );
-          //       }),
-          //       _buildDashboardButton(context, Icons.feedback, 'Feedback', () {
-          //         Navigator.push(
-          //           context,
-          //           MaterialPageRoute(
-          //             builder: (context) => const FeedbackPage(),
-          //           ),
-          //         );
-          //       }),
-          //       _buildDashboardButton(
-          //           context, Icons.settings, 'Profile Settings', () {}),
-          //     ],
-          //   ),
-          // ),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Column(
-              children: [
-                _DashCard01(
-                  icon: Icons.event_seat,
-                  title: 'Reserve a Shuttle',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FindActiveShuttlesPage(),
-                      ),
-                    );
-                    // Navigate to shuttle reservation page
-                  },
-                ),
-                _DashCard(
-                  icon: Icons.bookmark,
-                  title: 'My Shuttle List',
-                  onTap: () {
-                    // Navigate to my shuttle list page
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FavoritesPage(),
-                      ),
-                    );
-                  },
-                ),
-                _DashCard(
-                  icon: Icons.emoji_people,
-                  title: 'Request for Special Shuttle',
-                  onTap: () {
-                    // Navigate to special shuttle request page
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SpecialRequsetsMain(),
-                      ),
-                    );
-                  },
-                ),
-                _DashCard(
-                  icon: Icons.report,
-                  title: 'Make a complaint',
-                  onTap: () {
-                    // Navigate to complaint page
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PassengerComplaintPage(),
-                      ),
-                    );
-                  },
+                // Buttons for various actions
+                Column(
+                  children: [
+                    _DashCard01(
+                      icon: Icons.event_seat,
+                      title: '      Reserve a Shuttle',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/find-active-shuttles');
+                        // Navigate to shuttle reservation page
+                      },
+                    ),
+                    _DashCard(
+                      icon: Icons.bookmark,
+                      title: 'My Shuttle List',
+                      onTap: () {
+                        // Navigate to my shuttle list page
+                        Navigator.pushNamed(context, '/favorite-shuttles');
+                      },
+                    ),
+                    _DashCard(
+                      icon: Icons.emoji_people,
+                      title: 'Request for Special Shuttle',
+                      onTap: () {
+                        // Navigate to special shuttle request page
+                        Navigator.pushNamed(context, '/special-shuttle');
+                      },
+                    ),
+                    _DashCard(
+                      icon: Icons.report,
+                      title: 'Make a complaint',
+                      onTap: () {
+                        // Navigate to complaint page
+                        Navigator.pushNamed(
+                            context, '/passenger-make-complaints');
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          // backgroundColor: const Color.fromARGB(255, 184, 245, 186),
+          selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
+          unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
+          currentIndex: 0, // Default active tab
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.event_seat),
+              label: 'My Bookings',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications),
+              label: 'Notifications',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_circle_rounded),
+              label: 'Account',
+            ),
+          ],
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                Navigator.pushNamed(context, '/passenger-dashboard');
+                break;
+              case 1:
+                Navigator.pushNamed(context, '/my-bookings');
+                break;
+              case 2:
+                Navigator.pushNamed(context, '/passenger-notifications');
 
-          const Spacer(),
-
-          // Search bar at the bottom
-          // Padding(
-          //   padding: const EdgeInsets.all(20.0),
-          //   child: Row(
-          //     children: [
-          //       Expanded(
-          //         child: TextField(
-          //           decoration: InputDecoration(
-          //             hintText: 'Search for shuttle',
-          //             border: OutlineInputBorder(
-          //               borderRadius: BorderRadius.circular(20),
-          //             ),
-          //             filled: true,
-          //             fillColor: Colors.white,
-          //           ),
-          //         ),
-          //       ),
-          //       const SizedBox(width: 10),
-          //       IconButton(
-          //         icon: const Icon(Icons.search),
-          //         onPressed: () {
-          //           // Handle search action
-          //         },
-          //       ),
-          //     ],
-          //   ),
-          // ),
-        ],
-      ),
-
-      // Bottom navigation bar
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.green,
-        selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-        unselectedItemColor: const Color.fromARGB(255, 255, 255, 255),
-        currentIndex: 0, // Default active tab
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.event_seat),
-            label: 'My Bookings',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle_rounded),
-            label: 'Account',
-          ),
-        ],
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DashboardScreen(),
-                ),
-              );
-              break;
-            case 1:
-              // Navigate to Activities page
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MyBookingsPage(),
-                ),
-              );
-              break;
-            case 2:
-              // Navigate to Notifications page
-              break;
-            case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
-              break;
-          }
-        },
+                break;
+              case 3:
+                Navigator.pushNamed(context, '/passenger-profile');
+                break;
+            }
+          },
+        ),
       ),
     );
   }
-
-  // Widget _buildDashboardButton(
-  //     BuildContext context, IconData icon, String label, VoidCallback onTap) {
-  //   return ElevatedButton(
-  //     style: ElevatedButton.styleFrom(
-  //       backgroundColor: Colors.white, // Button color
-  //       shape: RoundedRectangleBorder(
-  //         borderRadius: BorderRadius.circular(20),
-  //       ),
-  //     ),
-  //     onPressed: onTap,
-  //     child: Column(
-  //       mainAxisAlignment: MainAxisAlignment.center,
-  //       children: [
-  //         Icon(icon, size: 50, color: Colors.black),
-  //         const SizedBox(height: 10),
-  //         Text(
-  //           label,
-  //           style: const TextStyle(color: Colors.black, fontSize: 16),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Widget _DashCard({
     required IconData icon,
@@ -425,29 +310,19 @@ Widget _DashCard01({
           ),
           child: Row(
             children: [
-              const SizedBox(width: 20),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  // color: const Color.fromARGB(255, 255, 255, 255), // Soft circle background
-                ),
-                child: Icon(
-                  icon,
-                  color: const Color.fromARGB(
-                      255, 0, 0, 0), // Slightly darker green icon
-                  size: 40,
-                ),
+              const SizedBox(width: 20), // Add spacing from the left
+              Icon(
+                icon,
+                size: 40,
+                color: Colors.green.shade700,
               ),
-              const SizedBox(width: 20),
+              const SizedBox(width: 10),
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: const Color.fromARGB(
-                      255, 0, 0, 0), // Matching soft green text
-                ),
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green),
               ),
             ],
           ),

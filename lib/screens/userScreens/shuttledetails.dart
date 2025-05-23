@@ -116,12 +116,38 @@ class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
     return null;
   }
 
+  // Function to check if booking should be allowed based on journey time
+  bool _isReservationAllowed(Timestamp? journeyTime) {
+    if (journeyTime == null) return false;
+
+    final now = DateTime.now();
+    final journeyDateTime = journeyTime.toDate();
+
+    // Create DateTime for today with the same time as the journey
+    final todayJourneyTime = DateTime(now.year, now.month, now.day,
+        journeyDateTime.hour, journeyDateTime.minute);
+
+    // Calculate the cutoff time (2 hours before journey)
+    final cutoffTime = todayJourneyTime.subtract(const Duration(hours: 2));
+
+    // Get current hour for 8 PM check
+    final currentHour = now.hour;
+
+    // After 8 PM (20:00), allow reservations for next day
+    if (currentHour >= 20) {
+      return true;
+    }
+
+    // Check if current time is before the cutoff time
+    return now.isBefore(cutoffTime);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Shuttle Details'),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
         actions: [
           IconButton(
             icon: Icon(
@@ -160,6 +186,12 @@ class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
                 shuttle['shuttle']?['full_journey_price']?.toString() ?? 'N/A';
             final morningJourneyTime = shuttle['morning_journey_time'];
             final eveningJourneyTime = shuttle['evening_journey_time'];
+
+            // Check if reservations are allowed for morning and evening journeys
+            final morningReservationAllowed =
+                _isReservationAllowed(morningJourneyTime);
+            final eveningReservationAllowed =
+                _isReservationAllowed(eveningJourneyTime);
 
             return Padding(
               padding: const EdgeInsets.all(16.0),
@@ -241,21 +273,23 @@ class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
 
                       // Morning Journey Reserve Now Button with Unique ID
                       ElevatedButton(
-                        onPressed: () {
-                          final uniqueId =
-                              'reserve_${widget.shuttleId}_morning';
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BookingDetailsPage(
-                                journeyType: 'Morning Journey',
-                                price: price,
-                                driverName: driverName,
-                                phone: shuttle['phone'] ?? 'Unknown',
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: morningReservationAllowed
+                            ? () {
+                                final uniqueId =
+                                    'reserve_${widget.shuttleId}_morning';
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => BookingDetailsPage(
+                                      journeyType: 'Morning Journey',
+                                      price: price,
+                                      driverName: driverName,
+                                      phone: shuttle['phone'] ?? 'Unknown',
+                                    ),
+                                  ),
+                                );
+                              }
+                            : null, // Disable button if not allowed
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           padding: const EdgeInsets.symmetric(
@@ -265,6 +299,7 @@ class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
+                          // Button will be greyed out automatically when onPressed is null
                         ),
                         child: const Text(
                           'Reserve Now',
@@ -307,21 +342,23 @@ class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
 
                       // Evening Journey Reserve Now Button with Unique ID
                       ElevatedButton(
-                        onPressed: () {
-                          final uniqueId =
-                              'reserve_${widget.shuttleId}_evening';
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BookingDetailsPage(
-                                journeyType: 'Evening Journey',
-                                price: price,
-                                driverName: driverName,
-                                phone: shuttle['phone'] ?? 'Unknown',
-                              ),
-                            ),
-                          );
-                        },
+                        onPressed: eveningReservationAllowed
+                            ? () {
+                                final uniqueId =
+                                    'reserve_${widget.shuttleId}_evening';
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => BookingDetailsPage(
+                                      journeyType: 'Evening Journey',
+                                      price: price,
+                                      driverName: driverName,
+                                      phone: shuttle['phone'] ?? 'Unknown',
+                                    ),
+                                  ),
+                                );
+                              }
+                            : null, // Disable button if not allowed
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                           padding: const EdgeInsets.symmetric(
@@ -331,6 +368,7 @@ class _ShuttleDetailsPageState extends State<ShuttleDetailsPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
+                          // Button will be greyed out automatically when onPressed is null
                         ),
                         child: const Text(
                           'Reserve Now ',

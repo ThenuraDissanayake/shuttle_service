@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shuttle_service/screens/welcome.dart';
-import 'dashboard.dart';
 
 class UserProfilePage extends StatelessWidget {
   const UserProfilePage({super.key});
@@ -10,13 +8,7 @@ class UserProfilePage extends StatelessWidget {
   Future<void> _logout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut(); // Firebase logout
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              const WelcomeScreen(), // Redirect to WelcomeScreen
-        ),
-      );
+      Navigator.pushNamed(context, '/');
     } catch (e) {
       print('Error during logout: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -55,7 +47,7 @@ class UserProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
         title: const Text('User Profile'),
         actions: [
           IconButton(
@@ -106,27 +98,27 @@ class UserProfilePage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
                       children: [
-                        _buildProfileOption(
-                          icon: Icons.person,
-                          title: 'Edit Personal Details',
-                          onTap: () {
-                            // Navigate to edit personal details screen
-                          },
-                        ),
-                        _buildProfileOption(
-                          icon: Icons.lock,
-                          title: 'Change Password',
-                          onTap: () {
-                            // Navigate to change password screen
-                          },
-                        ),
-                        _buildProfileOption(
-                          icon: Icons.payment,
-                          title: 'Paymeent Methords',
-                          onTap: () {
-                            // Navigate to booking preferences screen
-                          },
-                        ),
+                        // _buildProfileOption(
+                        //   icon: Icons.person,
+                        //   title: 'Edit Personal Details',
+                        //   onTap: () {
+                        //     // Navigate to edit personal details screen
+                        //   },
+                        // ),
+                        // _buildProfileOption(
+                        //   icon: Icons.lock,
+                        //   title: 'Change Password',
+                        //   onTap: () {
+                        //     // Navigate to change password screen
+                        //   },
+                        // ),
+                        // _buildProfileOption(
+                        //   icon: Icons.payment,
+                        //   title: 'Paymeent Methords',
+                        //   onTap: () {
+                        //     // Navigate to booking preferences screen
+                        //   },
+                        // ),
                         _buildProfileOption(
                           icon: Icons.logout,
                           title: 'Logout',
@@ -143,9 +135,9 @@ class UserProfilePage extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.green,
+        // backgroundColor: const Color.fromARGB(255, 184, 245, 186),
         selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-        unselectedItemColor: const Color.fromARGB(255, 255, 255, 255),
+        unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
         currentIndex: 3, // Default active tab
         items: const [
           BottomNavigationBarItem(
@@ -153,8 +145,8 @@ class UserProfilePage extends StatelessWidget {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Activities',
+            icon: Icon(Icons.event_seat),
+            label: 'My Bookings',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
@@ -168,26 +160,17 @@ class UserProfilePage extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DashboardScreen(),
-                ),
-              );
+              Navigator.pushNamed(context, '/passenger-dashboard');
               break;
             case 1:
-              // Navigate to Activities page
+              Navigator.pushNamed(context, '/my-bookings');
               break;
             case 2:
-              // Navigate to Notifications page
+              Navigator.pushNamed(context, '/passenger-notifications');
+
               break;
             case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/passenger-profile');
               break;
           }
         },

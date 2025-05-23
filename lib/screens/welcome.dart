@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'login.dart'; // Import the LoginScreen
-import 'registration.dart'; // Import the DynamicRegistrationScreen
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -54,11 +52,7 @@ class WelcomeScreen extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: () {
                   // Navigate to Login Screen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const LoginScreen()),
-                  );
+                  Navigator.pushNamed(context, '/login');
                 },
                 icon: const Icon(Icons.login, color: Colors.black),
                 label: const Text(
@@ -79,12 +73,7 @@ class WelcomeScreen extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: () {
                   // Navigate to the Dynamic Registration Page
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            const DynamicRegistrationScreen()),
-                  );
+                  Navigator.pushNamed(context, '/register');
                 },
                 icon: const Icon(Icons.app_registration, color: Colors.white),
                 label: const Text(

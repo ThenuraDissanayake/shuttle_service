@@ -1,8 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'userScreens/dashboard.dart'; // Passenger dashboard
-import 'ShuttleOwnerScreens/shuttledashboard.dart'; // Shuttle owner dashboard
 
 class DynamicRegistrationScreen extends StatefulWidget {
   const DynamicRegistrationScreen({super.key});
@@ -20,32 +19,25 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   String? _selectedRole;
+  bool _agreedToTerms = false;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<String> _getNextShuttleNumber() async {
-    // Reference to a special document that will track the last shuttle number
     DocumentReference counterRef =
         _firestore.collection('counters').doc('shuttle_number');
 
-    // Use a transaction to ensure atomic increment
     return _firestore.runTransaction((transaction) async {
       DocumentSnapshot counterSnap = await transaction.get(counterRef);
 
       if (!counterSnap.exists) {
-        // If the counter doesn't exist, create it and start from 1
         transaction.set(counterRef, {'last_shuttle_number': 0});
         return 'Shuttle No1';
       }
 
-      // Get the last shuttle number and increment
       int lastNumber = counterSnap['last_shuttle_number'] + 1;
-
-      // Update the counter
       transaction.update(counterRef, {'last_shuttle_number': lastNumber});
-
-      // Return the new shuttle number
       return 'Shuttle No$lastNumber';
     });
   }
@@ -59,31 +51,32 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
         return;
       }
 
+      if (!_agreedToTerms) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Please agree to the terms & conditions.')),
+        );
+        return;
+      }
+
       try {
-        // Register user in Firebase Authentication
         UserCredential userCredential =
             await _auth.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
-        // For drivers (owners), generate a shuttle number
         String shuttleNumber =
             _selectedRole == 'Driver' ? await _getNextShuttleNumber() : '';
 
-        // Prepare Firestore data
         final userData = {
           'name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
-          'role': _selectedRole == 'Driver'
-              ? 'Owner'
-              : _selectedRole, // Store as 'Owner' in Firestore if 'Driver' is selected
+          'role': _selectedRole == 'Driver' ? 'Owner' : _selectedRole,
           'createdAt': FieldValue.serverTimestamp(),
-          // Add Shuttle Number for Drivers
           if (_selectedRole == 'Driver') 'Shuttle_No': shuttleNumber,
         };
 
-        // Save data in Firestore
         final String collection =
             _selectedRole == 'Passenger' ? 'passengers' : 'owners';
         await _firestore
@@ -100,18 +93,10 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
           ),
         );
 
-        // Navigate to the appropriate dashboard
         if (_selectedRole == 'Passenger') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const DashboardScreen()),
-          );
+          Navigator.pushNamed(context, '/passenger-dashboard');
         } else if (_selectedRole == 'Driver') {
-          // Here, 'Driver' will map to 'Owner'
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const OwnerDashboardPage()),
-          );
+          Navigator.pushNamed(context, '/driver-dashboard');
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -129,19 +114,17 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Navigate back to the previous screen
+            Navigator.pop(context);
           },
         ),
       ),
       body: Center(
-        // Center the body content
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
           child: Form(
             key: _formKey,
             child: Column(
-              mainAxisSize:
-                  MainAxisSize.min, // Ensure the column takes minimum space
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -166,7 +149,7 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
                 // Role Dropdown
                 DropdownButtonFormField<String>(
                   value: _selectedRole,
-                  items: ['Passenger', 'Driver'] // Show Driver instead of Owner
+                  items: ['Passenger', 'Driver']
                       .map((role) => DropdownMenuItem(
                             value: role,
                             child: Text(role),
@@ -184,7 +167,7 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Name field
+                // Name
                 TextFormField(
                   controller: _nameController,
                   enabled: _selectedRole != null,
@@ -199,7 +182,7 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Email field
+                // Email
                 TextFormField(
                   controller: _emailController,
                   enabled: _selectedRole != null,
@@ -221,7 +204,7 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Password field
+                // Password
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
@@ -238,7 +221,7 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Confirm Password field
+                // Confirm Password
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: true,
@@ -253,11 +236,68 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
                       ? 'Passwords do not match'
                       : null,
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
 
-                // Register button
+                // Terms & Conditions
+                CheckboxListTile(
+                  controlAffinity: ListTileControlAffinity.leading,
+                  value: _agreedToTerms,
+                  onChanged: (value) {
+                    setState(() {
+                      _agreedToTerms = value ?? false;
+                    });
+                  },
+                  title: RichText(
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      children: [
+                        const TextSpan(text: '  I agree to the '),
+                        TextSpan(
+                          text: 'Terms & Conditions',
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              // Load terms from assets/terms.txt
+                              String termsContent = 'Loading terms...';
+                              try {
+                                termsContent =
+                                    await DefaultAssetBundle.of(context)
+                                        .loadString('assets/terms.txt');
+                              } catch (e) {
+                                termsContent =
+                                    'Failed to load terms. Please try again later.';
+                              }
+                              // Show terms and conditions in a dialog
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Terms & Conditions'),
+                                  content: SingleChildScrollView(
+                                    child: Text(
+                                        termsContent), // Dynamically loaded terms
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Close'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Register Button
                 ElevatedButton(
-                  onPressed: registerUser,
+                  onPressed: _agreedToTerms ? registerUser : null,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 50, vertical: 15),
@@ -271,6 +311,24 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
                     style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ),
+                const SizedBox(height: 20),
+
+                // Already have an account
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Already have an account?"),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/login');
+                      },
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -281,7 +339,6 @@ class _DynamicRegistrationScreenState extends State<DynamicRegistrationScreen> {
 
   @override
   void dispose() {
-    // Clean up controllers when the widget is disposed
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();

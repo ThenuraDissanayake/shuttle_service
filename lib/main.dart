@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'screens/welcome.dart'; // Import the Welcome screen
+import 'package:shuttle_service/routs.dart';
+import 'package:shuttle_service/services/notification_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Initialize Firebase
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await Firebase.initializeApp(); // Initialize Firebase
+    await NotificationService.initialize(); // Initialize notifications
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    print("Error during initialization: $e");
+    // Continue without .env if it fails to load
+  }
   runApp(const MyApp());
 }
 
@@ -18,7 +27,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      home: const WelcomeScreen(), // Start with the Welcome screen
+      routes: Routes.getRoutes(),
       debugShowCheckedModeBanner: false,
     );
   }

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shuttle_service/screens/admin/admin_dashboard.dart';
-import 'userScreens/dashboard.dart'; // Passenger dashboard
-import 'ShuttleOwnerScreens/shuttledashboard.dart'; // Shuttle owner dashboard
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,7 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     try {
-      // Authenticate user
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
@@ -35,18 +31,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
       final User? user = userCredential.user;
       if (user != null) {
-        // Check user role in Firestore
         final passengersDoc = await FirebaseFirestore.instance
             .collection('passengers')
             .doc(user.uid)
             .get();
 
         if (passengersDoc.exists) {
-          // Navigate to Passenger Dashboard
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const DashboardScreen()),
-          );
+          Navigator.pushNamed(context, '/passenger-dashboard');
           return;
         }
 
@@ -56,11 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
             .get();
 
         if (ownersDoc.exists) {
-          // Navigate to Shuttle Owner Dashboard
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const OwnerDashboardPage()),
-          );
+          Navigator.pushNamed(context, '/driver-dashboard');
           return;
         }
 
@@ -70,11 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
             .get();
 
         if (adminsDoc.exists) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const AdminDashboardScreen()),
-          );
+          Navigator.pushNamed(context, '/admin-dashboard');
           return;
         }
 
@@ -89,6 +72,14 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _navigateToForgotPassword() {
+    Navigator.pushNamed(context, '/forgot-password');
+  }
+
+  void _navigateToRegister() {
+    Navigator.pushNamed(context, '/register');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,12 +88,12 @@ class _LoginScreenState extends State<LoginScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Navigate back to the previous screen
+            Navigator.pop(context);
           },
         ),
       ),
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -146,7 +137,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _navigateToForgotPassword,
+                  child: const Text(
+                    'Forgot Password?',
+                    style: TextStyle(color: Colors.green),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: _loginWithEmailAndPassword,
                 style: ElevatedButton.styleFrom(
@@ -162,6 +164,24 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: _navigateToRegister,
+                child: const Text.rich(
+                  TextSpan(
+                    text: "Don't have an account? ",
+                    children: [
+                      TextSpan(
+                        text: 'Register',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

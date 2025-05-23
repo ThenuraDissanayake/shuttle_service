@@ -1,23 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
-import 'package:shuttle_service/screens/welcome.dart';
-import 'driver_pro.dart';
-import 'shuttledashboard.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class UserProfilePage extends StatelessWidget {
-  const UserProfilePage({super.key});
+class DUserProfilePage extends StatelessWidget {
+  const DUserProfilePage({super.key});
 
   Future<void> _logout(BuildContext context) async {
     try {
-      await FirebaseAuth.instance.signOut(); // Firebase logout
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              const WelcomeScreen(), // Redirect to WelcomeScreen
-        ),
-      );
+      await FirebaseAuth.instance.signOut(); // Sign out the user
+      Navigator.pushNamed(context, '/');
     } catch (e) {
       print('Error during logout: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -31,7 +22,7 @@ class UserProfilePage extends StatelessWidget {
       final user = FirebaseAuth.instance.currentUser; // Get current user
       if (user != null) {
         final doc = await FirebaseFirestore.instance
-            .collection('owners') // Adjust collection name if needed
+            .collection('owners')
             .doc(user.uid)
             .get();
 
@@ -56,7 +47,7 @@ class UserProfilePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
         title: const Text('User Profile'),
         actions: [
           IconButton(
@@ -105,26 +96,22 @@ class UserProfilePage extends StatelessWidget {
                           icon: Icons.person,
                           title: 'Edit Personal Details',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const DriverDetailsPage()),
-                            );
+                            Navigator.pushNamed(context, '/driver-details');
                           },
                         ),
-                        _buildProfileOption(
-                          icon: Icons.lock,
-                          title: 'Change Password',
-                          onTap: () {
-                            // Navigate to change password screen
-                          },
-                        ),
+                        // _buildProfileOption(
+                        //   icon: Icons.lock,
+                        //   title: 'Change Password',
+                        //   onTap: () {
+                        //     // Navigate to change password screen
+                        //   },
+                        // ),
                         _buildProfileOption(
                           icon: Icons.payment,
-                          title: 'Bank Details',
+                          title: 'Payment Details',
                           onTap: () {
-                            // Navigate to booking preferences screen
+                            Navigator.pushNamed(
+                                context, '/driver-payment-setup');
                           },
                         ),
                         _buildProfileOption(
@@ -143,18 +130,17 @@ class UserProfilePage extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.green,
         selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-        unselectedItemColor: const Color.fromARGB(255, 255, 255, 255),
-        currentIndex: 3, // Set the current tab index (Account tab)
+        unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
+        currentIndex: 3,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Activities',
+            icon: Icon(Icons.qr_code_scanner),
+            label: 'ShuttlePassScan',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
@@ -168,24 +154,21 @@ class UserProfilePage extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const OwnerDashboardPage(),
-                ),
-              );
+              Navigator.pushNamed(context, '/driver-dashboard');
               break;
             case 1:
-              // Navigate to Activities page
+              Navigator.pushNamed(context, '/qr-scanner');
               break;
             case 2:
-              // Navigate to Notifications page
+              Navigator.pushNamed(context, '/driver-notification');
               break;
             case 3:
-              // Stay on the current page
+              Navigator.pushNamed(context, '/driver-profile');
               break;
           }
         },
+        selectedLabelStyle: const TextStyle(fontSize: 12),
+        unselectedLabelStyle: const TextStyle(fontSize: 12),
       ),
     );
   }

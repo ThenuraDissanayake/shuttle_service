@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:shuttle_service/screens/userScreens/track_driver_page.dart';
 
 class MyBookingsPage extends StatefulWidget {
   const MyBookingsPage({Key? key}) : super(key: key);
@@ -120,6 +121,8 @@ class _MyBookingsPageState extends State<MyBookingsPage>
   Widget _buildQRCode(Map<String, dynamic> booking) {
     final qrData = 'Booking ID: ${booking['id']}\n'
         'Passenger: ${booking['passengerName'] ?? 'N/A'}\n'
+        'Driver: ${booking['driverName'] ?? 'N/A'}\n'
+        'Payment Type: ${booking['paymentMethod'] ?? 'N/A'}\n'
         'Journey: ${booking['journeyType'] ?? 'N/A'}';
 
     return Container(
@@ -156,7 +159,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Bookings'),
-        backgroundColor: Colors.green,
+        // backgroundColor: Colors.green,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -190,6 +193,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
+                            Text('Driver: ${booking['driverName'] ?? 'N/A'}'),
                             Text(
                                 'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
                             Text(
@@ -223,6 +227,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
+                            Text('Driver: ${booking['driverName'] ?? 'N/A'}'),
                             Text(
                                 'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
                             Text(
@@ -237,7 +242,16 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                             const SizedBox(height: 12),
                             Center(
                               child: ElevatedButton.icon(
-                                onPressed: () => (),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => TrackDriverPage(
+                                        driverName: booking['driverName'],
+                                      ),
+                                    ),
+                                  );
+                                },
                                 icon: const Icon(Icons.location_on),
                                 label: const Text('Track my shuttle'),
                                 style: ElevatedButton.styleFrom(
@@ -277,6 +291,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
+                            Text('Driver: ${booking['driverName'] ?? 'N/A'}'),
                             Text(
                                 'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
                             Text(
@@ -310,6 +325,7 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
+                            Text('Driver: ${booking['driverName'] ?? 'N/A'}'),
                             Text(
                                 'Journey Type: ${booking['journeyType'] ?? 'N/A'}'),
                             Text(
@@ -325,6 +341,48 @@ class _MyBookingsPageState extends State<MyBookingsPage>
                 ),
               ],
             ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        // backgroundColor: const Color.fromARGB(255, 184, 245, 186),
+        selectedItemColor: const Color.fromARGB(255, 0, 0, 0),
+        unselectedItemColor: const Color.fromARGB(255, 191, 201, 183),
+        currentIndex: 1, // Default active tab
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.event_seat),
+            label: 'My Bookings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications),
+            label: 'Notifications',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle_rounded),
+            label: 'Account',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.pushNamed(context, '/passenger-dashboard');
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/my-bookings');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/passenger-notifications');
+
+              break;
+            case 3:
+              Navigator.pushNamed(context, '/passenger-profile');
+              break;
+          }
+        },
+      ),
     );
   }
 
