@@ -80,16 +80,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.directions_bus,
-                      color: Colors.green,
-                      size: 50,
+                    Image.asset(
+                      'assets/images/bus_icon.png',
+                      width: 40,
+                      height: 40,
                     ),
-                    SizedBox(width: 10),
-                    Text(
+                    const SizedBox(width: 10),
+                    const Text(
                       'UniShuttle',
                       style: TextStyle(
                         fontSize: 32,
