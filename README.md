@@ -87,6 +87,6 @@ Refer to the [assets/terms.txt](assets/terms.txt) file for the full terms and co
 
 ## 📧 Contact
 
-For any inquiries or support, please contact the development team at **10898450@students.plymouth.ac.uk**.
+For any inquiries or support, please contact the development team at **thenurabudvin@gmail.com**.
 
 ---
