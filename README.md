@@ -43,7 +43,9 @@ A **Digital Shuttle Booking and Management System** for NSBM Green University, e
    ```
 4. Set up Firebase:
    - Add `google-services.json` (for Android) and `GoogleService-Info.plist` (for iOS) to their respective directories.
-5. Run the app:
+5. Add your Google Maps API key:
+   - Replace `YOUR_GOOGLE_MAPS_API_KEY` in `android/app/src/main/AndroidManifest.xml`, `android/app/src/main/res/values/google_maps_api.xml` and `ios/Runner/AppDelegate.swift`.
+6. Run the app:
    ```bash
    flutter run
    ```

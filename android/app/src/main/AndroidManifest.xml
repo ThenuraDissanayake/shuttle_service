@@ -24,7 +24,7 @@ xmlns:tools="http://schemas.android.com/tools">
         <!-- Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDWNJpIdz6mVsChzNOG1c_E5x6JOUC1krs"/>
+            android:value="YOUR_GOOGLE_MAPS_API_KEY"/>
 
 
 

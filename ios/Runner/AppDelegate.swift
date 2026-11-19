@@ -12,7 +12,7 @@ import FirebaseMessaging
     ) -> Bool {
         FirebaseApp.configure()
         GeneratedPluginRegistrant.register(with: self)
-        GMSServices.provideAPIKey("AIzaSyDWNJpIdz6mVsChzNOG1c_E5x6JOUC1krs")
+        GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
         
         // Request notification permissions
         UNUserNotificationCenter.current().delegate = self
