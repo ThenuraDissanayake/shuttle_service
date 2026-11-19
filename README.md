@@ -59,23 +59,9 @@ A **Digital Shuttle Booking and Management System** for NSBM Green University, e
 
 ---
 
-## 📝 Test User Credentials
+## 🔑 Demo accounts
 
-Use the following credentials to test the application:
-
-- **Passenger**
-
-  - Email: `test1@gmail.com`
-  - Password: `123456`
-
-- **Driver**
-
-  - Email: `test2@gmail.com`
-  - Password: `123456`
-
-- **Admin**
-  - Email: `admin1234@gmail.com`
-  - Password: `admin1234`
+Demo login details for the passenger, driver and admin roles are available on request.
 
 ---
 
